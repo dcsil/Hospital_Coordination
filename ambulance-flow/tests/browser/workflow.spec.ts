@@ -1,0 +1,60 @@
+import { test, expect } from '@playwright/test';
+import { DEFAULT_CONFIG } from '../../lib/simulation';
+
+test('complete browser workflow: configure, approve, change capacity, evaluate, export, reload', async ({ page }) => {
+  const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'A clearer view. A better flow.' })).toBeVisible();
+  await expect(page.getByText('Connecting to your workspace…')).toBeHidden();
+  await page.screenshot({ path: 'outputs/overview-desktop.png', fullPage: true });
+  await page.getByRole('button', { name: 'Create a scenario', exact: true }).click();
+  await page.getByLabel('Scenario name', { exact: true }).fill('Browser QA · manual shift');
+  await page.getByLabel('Simulated duration').selectOption('60');
+  await page.getByLabel('Require dispatcher approval').check();
+  await page.getByRole('button', { name: 'Start simulation', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Live operations', exact: true })).toBeVisible();
+  await page.getByLabel('Simulation speed').selectOption('15');
+  await page.getByRole('button', { name: 'Review next', exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Pause', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Review next', exact: true }).click();
+  await page.getByRole('button', { name: 'Confirm', exact: true }).filter({ visible: true }).first().click();
+  await expect(page.getByText('Committed to:', { exact: true })).toBeVisible();
+  await page.screenshot({ path: 'outputs/operations-desktop.png', fullPage: true });
+  await page.getByRole('button', { name: 'Hospital network', exact: true }).click();
+  await page.getByLabel('Handover capacity at Toronto General').selectOption('1');
+  await expect(page.getByLabel('Handover capacity at Toronto General')).toHaveValue('1');
+  await page.getByRole('button', { name: 'AI intelligence', exact: false }).click();
+  await expect(page.getByRole('heading', { name: 'Explainable coordination, from the ground up.' })).toBeVisible();
+  await page.getByRole('button', { name: 'Evaluation', exact: true }).click();
+  await page.getByLabel('Distinct seeds').selectOption('3');
+  await page.getByRole('button', { name: 'Run comparison', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Strategy comparison', exact: true })).toBeVisible();
+  await expect(page.locator('tbody tr')).toHaveCount(6);
+  const file = page.waitForEvent('download'); await page.getByRole('button', { name: 'Download CSV' }).click(); expect((await file).suggestedFilename()).toBe('kinetic-evaluation.csv');
+  await page.screenshot({ path: 'outputs/evaluation-desktop.png', fullPage: true });
+  await page.reload(); await expect(page.getByText('Connecting to your workspace…')).toBeHidden();
+  await page.getByRole('button', { name: 'Hospital network', exact: true }).click(); await expect(page.getByLabel('Handover capacity at Toronto General')).toHaveValue('1');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Open navigation' }).click(); await page.getByRole('button', { name: 'Overview', exact: true }).click();
+  await expect.poll(() => page.locator('.sidebar').evaluate(el => el.getBoundingClientRect().right)).toBeLessThanOrEqual(0);
+  await expect(page.getByRole('heading', { name: 'A clearer view. A better flow.' })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await page.screenshot({ path: 'outputs/overview-mobile.png', fullPage: true });
+  expect(errors).toEqual([]);
+});
+
+test('API validates inputs, rejects revision races, and journals every committed event', async ({ request }) => {
+  const invalid = await request.post('/api/scenarios', { data: { ...DEFAULT_CONFIG, fleet: -1 } }); expect(invalid.status()).toBe(400);
+  const denied = await request.post('/api/scenarios', { headers: { Origin: 'https://unrelated.example' }, data: DEFAULT_CONFIG }); expect(denied.status()).toBe(403);
+  const saved = await request.post('/api/scenarios', { data: { ...DEFAULT_CONFIG, name: 'API QA', duration: 60 } }); expect(saved.status()).toBe(201);
+  const scenario = await saved.json(); const created = await request.post('/api/runs', { data: { scenarioId: scenario.id } }); expect(created.status()).toBe(201); let run = await created.json();
+  const [a, b] = await Promise.all([request.post(`/api/runs/${run.id}/control`, { data: { revision: 0, action: 'advance', minutes: 30 } }), request.post(`/api/runs/${run.id}/control`, { data: { revision: 0, action: 'advance', minutes: 20 } })]);
+  expect([a.status(), b.status()].sort()).toEqual([200, 409]);
+  run = await (await request.get(`/api/runs/${run.id}/state`)).json(); expect([20, 30]).toContain(run.time); expect(run.revision).toBe(1);
+  const events = await (await request.get(`/api/runs/${run.id}/events`)).json(); expect(events.length).toBe(run.sequence); expect(new Set(events.map((e: { sequence: number }) => e.sequence)).size).toBe(events.length);
+  const predictions = await request.get(`/api/runs/${run.id}/predictions`); expect(predictions.status()).toBe(200); expect(await predictions.json()).toHaveLength(5);
+  while (run.status === 'running') { const response = await request.post(`/api/runs/${run.id}/control`, { data: { revision: run.revision, action: 'advance', minutes: 30 } }); expect(response.status()).toBe(200); run = await response.json(); }
+  const exported = await (await request.get(`/api/runs/${run.id}/export`)).json(); expect(exported.events.length).toBe(run.sequence); expect(exported.metrics.completed).toBeGreaterThan(0);
+  const ended = await request.post(`/api/runs/${run.id}/control`, { data: { revision: run.revision, action: 'resume' } }); expect(ended.status()).toBe(409);
+});
