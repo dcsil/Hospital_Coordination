@@ -93,7 +93,7 @@
     $('#chapter').innerHTML = slides[c.id]();
     $('#chapters').innerHTML=D.chapters.map((ch,i)=>`<button data-go="${i}" aria-label="Slide ${ch.number}: ${ch.label}" ${i===index?'aria-current="step"':''}>${ch.number}</button>`).join('');
     document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(Number(b.dataset.go)));
-    $('#timing').textContent=`${c.time} · ${c.label}`;
+    $('#timing').innerHTML=`${c.time} · ${esc(c.label)}${c.speaker ? `<small class="speaker">${esc(c.speaker)}</small>` : ''}`;
     $('#prev').disabled=index===0; $('#next').disabled=index===D.chapters.length-1;
     if(c.id==='simulator'||c.id==='evaluation') mountSim(c.id==='simulator');
     if(c.id==='product') mountProduct();
