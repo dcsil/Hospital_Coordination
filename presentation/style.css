@@ -264,3 +264,8 @@
 .rc-group>strong{font-size:clamp(17px,2.6vh,23px)}
 .rc-delta,.rc-delta.good,.rc-delta.bad,.rc-delta.flat{font-size:clamp(14px,2.1vh,18px)}
 .rc-bars{gap:14px}
+
+/* Closing slide */
+.closing h1{font-size:clamp(52px,7vw,104px)}
+.closing .tagline{font-size:clamp(20px,2.2vw,30px);color:var(--green);font-weight:500;margin:0}
+.closing .questions{font-size:16px;color:var(--muted);margin-top:18px;letter-spacing:1px}
