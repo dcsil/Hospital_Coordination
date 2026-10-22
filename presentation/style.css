@@ -232,3 +232,4 @@
 
 /* Slide 6 on short screens */
 @media(min-width:801px) and (max-height:780px){.arch{gap:10px}.arch-node{padding:12px 18px;gap:4px}.arch-node small{font-size:13px}.arch-split{margin-top:6px}.arch-side{padding:7px 10px}.arch-side li{font-size:13px;padding:3px 8px}.arch-feed{gap:4px}.arch-feed>div{padding:6px 12px}.arch-grid{row-gap:8px}}
+.arch-backend .arch-split ul{grid-template-columns:1fr;margin:0;gap:5px}.arch-backend .arch-split li{text-align:left}
