@@ -1,24 +1,16 @@
 # Kinetic presentation
 
-A minimal 10-slide deck (including 4.5 and 7.5). No dependencies or build step.
+An 11-slide deck (including 3.5 and 8.5). No dependencies or build step. It runs fully offline: only the **Try it live** tab on slide 5 needs the app.
 
 ## Open
 
-Terminal 1:
-
-```sh
-cd ambulance-flow
-npm run dev
-```
-
-Terminal 2, from the repository root:
+From the repository root:
 
 ```sh
 node presentation/serve.mjs
 ```
 
-Open **http://127.0.0.1:5190**. The app is on **http://127.0.0.1:5173**.
-The server now supplies the same app URL to both the embedded pages and the read-only API proxy. For another app port, set it once:
+Open **http://127.0.0.1:5190**. To use **Try it live** on slide 5, also run the app (`cd ambulance-flow && npm run dev`, on **http://127.0.0.1:5173**). For another app port:
 
 ```sh
 APP_URL=http://127.0.0.1:8787 node presentation/serve.mjs
@@ -29,14 +21,20 @@ Restart the presentation server after changing `serve.mjs`. Refresh the browser 
 ## Controls
 
 - Left/right arrows or PageUp/PageDown: previous/next slide.
-- Number keys 1–8: jump to that numbered main slide. Use the bottom buttons or arrows for 4.5 and 7.5.
+- Number keys 1–9: jump to that numbered main slide. Use the bottom buttons or arrows for 3.5 and 8.5.
 - T: start/pause the 10-minute timer. ↺ resets it.
-- Simulator: switch between Setup and Live operations; use the embedded app normally.
-- Evaluation: run a matched comparison in the embedded app.
-- Open app / Full screen: expand the live demonstration.
-- Click outside the embedded app to return keyboard control to the deck.
+- Simulator (6): Setup builds a scenario, Live operations plays it. With dispatcher approval on, click a pulsing ambulance or **Review next**, then **Confirm** a hospital. Reset starts over.
+- Evaluation (8): pick a scenario and number of matched seeds; the comparison reruns instantly.
+- Full screen: expands the demo frame.
 
-The live app controls change local simulation data when used. The presentation server's API proxy remains GET-only. Navigating away removes the iframe; saved app state remains in the app's browser storage/database. Pause an active simulation before leaving its slide.
+## How the simulator and evaluation work offline
+
+`sim.js` is `ambulance-flow/lib/simulation.ts` bundled for the browser, so slides 6 and 8 run the same simulation and ranking logic as the app's API, just client-side with no database. `sim-views.js` draws the Scenario builder, Live operations and Evaluation views on top of it. Nothing is saved. To rebuild after the simulation changes:
+
+```sh
+cd ambulance-flow
+npx esbuild lib/simulation.ts --bundle --format=iife --global-name=Sim --target=es2020 --outfile=../presentation/sim.js
+```
 
 ## Media and the product demo
 
@@ -45,7 +43,6 @@ Place your files in `presentation/assets/`, then edit `media` in `content.js`:
 ```js
 media: {
   openingVideo: 'assets/opening.mp4',
-  productScreenshot: 'assets/product-screenshot.png',
 },
 ```
 
@@ -63,10 +60,9 @@ The product slide is not a video. `product-mock.js` is a small HTML/CSS/JS copy 
 | 3.5 | Baseline CUJ: persona, goal, step times, friction, metrics, go/no-go | 0:45 |
 | 4 | Current vs target journey | 0:45 |
 | 5 | Product demo (clickable copy + autoplay, or live app) | 0:30 |
-| 5.5 | Actual app screenshot placeholder | 0:30 |
-| 6 | Live simulator (setup + operations) | 1:45 |
+| 6 | Simulator (setup + live operations, offline) | 2:00 |
 | 7 | Architecture, decision and API contract | 1:30 |
-| 8 | Live evaluation | 0:30 |
+| 8 | Evaluation (matched seeds, offline) | 0:45 |
 | 8.5 | Quantitative validation gate | 0:30 |
 | 9 | Proof boundaries | 0:30 |
 | | Core total | **9:45** |
