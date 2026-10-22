@@ -83,7 +83,7 @@
 .gate .verdict h2{font-size:clamp(36px,4vw,58px);letter-spacing:-1.5px;margin:6px 0 8px;text-align:center}
 .gate .verdict p{margin:4px 0;font-size:16px;line-height:1.5;color:var(--ink);max-width:380px}
 .gate .gate-next{color:var(--muted)}
-@media(min-width:801px){video.media{height:min(63vh,calc(100dvh - 250px))}}
+@media(min-width:801px){video.media{height:min(63vh,calc(100dvh - 275px))}}
 
 /* Offline simulator + evaluation (sim-views.js) */
 .sim-host{position:absolute;inset:0;overflow:hidden;background:#f4f5f2}
