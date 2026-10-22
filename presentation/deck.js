@@ -21,12 +21,14 @@
   }
   const slides = {
     opening: () => `${heading('Every minute matters.')} ${media('video', D.media.openingVideo, 'Opening AI video', '1 minute · video to be added')}`,
+    title: () => `<div class="title-slide"><span class="eyebrow">KINETIC · CSC454 / CSC491 · DEMO 1</span><h1>Emergency Transport Coordinator</h1><p class="pitch">Compare hospitals by travel + predicted offload time, so ambulances hand over sooner and get back on the road.</p><div class="team"><figure><img src="assets/azaria.jpg" alt=""><figcaption>Azaria Kelman</figcaption></figure><figure><img src="assets/richard.jpg" alt=""><figcaption>Richard Xu</figcaption></figure></div></div>`,
     baseline: () => `${heading('Today, the ambulance journey does not end at hospital arrival')}<div class="baseline-layout"><ol class="timeline">${['911 call','Patient assessment','Suitable hospitals','Destination decision','Transport','ARRIVAL','OFFLOAD WAIT','Patient handover','Ambulance available again'].map((s,i) => `<li class="${i===6?'bottleneck':i===5?'arrival':''}"><span>${s}</span></li>`).join('')}</ol><div class="baseline-message"><span class="eyebrow">THE BOTTLENECK</span><h2>Waiting here.<br>Unavailable for<br>the next call.</h2><p>Offload time → lost ambulance availability</p></div></div>`,
+    cuj: () => { const steps = [['Open app',5,'none',0],['Read scenario defaults',20,'moderate',0],['Approval + Start',12,'moderate',0],['Sim plays to first case',9,'none',1],['Pause: decisions pile up',10,'severe',1],['Compare 5 ranked hospitals',20,'moderate',0],['Confirm',3,'none',0],['Check hospital network',20,'moderate',1]]; const metrics = [['Review → confirm','≤ 30 s','23 s',1],['Open → confirm','≤ 90 s','79 s',1],['Severe friction','0','1',0],['Context switches','≤ 2','2',1],['Decisions saved','100%','100/100',1],['Travel matches sim','100%','88/88',1],['Offload in range','≥ 80%','63%',0],['API p95 (local)','≤ 200 ms','16 ms',1]]; return `${heading('Baseline: one destination decision takes 79 s today.')}<div class="cuj"><div class="cuj-who"><div><span class="eyebrow">PERSONA</span><b>Maya, EMS flow lead.</b> Routes crews to emergency departments while 2 or 3 others wait on her.</div><div><span class="eyebrow">GOAL</span>Send a waiting ambulance to the hospital with the lowest travel + offload, saved, <b>in under 30 s without leaving the app.</b></div></div><div><div class="cuj-bar">${steps.map(([a,t,f],i) => `<div class="f-${f}" style="flex:${t}" title="${a}">${i+1}<span>${t} s</span></div>`).join('')}</div><div class="cuj-steps">${steps.map(([a,t,f,sw]) => `<div style="flex:${t}">${sw ? '<span class="switch">⇄ </span>' : ''}${a}</div>`).join('')}</div></div><div class="cuj-legend"><span><i class="f-none"></i>No friction</span><span><i class="f-moderate"></i>Moderate</span><span><i class="f-severe"></i>Severe: sim clock runs while Maya decides</span><span><b class="switch" style="color:var(--amber)">⇄</b> context switch</span><span style="margin-left:auto">99 s total · system times measured, user times estimated</span></div><div class="cuj-bottom"><div class="cuj-metrics">${metrics.map(([m,th,v,ok]) => `<div class="${ok ? '' : 'miss'}">${m}<b>${v}</b><small>target ${th} · ${ok ? 'pass' : 'fail'}</small></div>`).join('')}</div><div class="cuj-verdict"><span class="eyebrow">GO / NO-GO</span><strong>Technical: GO</strong><strong>User viability: <em>conditional</em></strong><span>2 misses. Fix first: auto-pause on pending decisions, calibrate the offload range.</span></div></div></div>`; },
     concept: () => `${heading('What if offload time became part of the destination decision?')}<div class="comparison"><section><h2>Current</h2>${flow(['Suitable hospitals','Current information','Choose destination','Travel','<em>Unknown offload wait</em>'])}</section><section class="target"><h2>Target</h2>${flow(['Suitable hospitals','<b>Travel + hospital state<br>+ inbound ambulances + predicted offload</b>','Compare destinations','<strong>Human chooses</strong>','Handover sooner → return to service'])}</section></div><p class="takeaway">Compare clinically appropriate hospitals by travel + expected offload.<br><strong>The user makes the final decision.</strong></p>`,
-    product: () => `${heading('From patient details to a destination.')}<div class="live-toolbar"><div class="view-tabs"><button data-mode="video" aria-pressed="true">Demo video</button><button data-mode="live" aria-pressed="false">Try it live</button></div><div><span id="connection" role="status"></span><button id="fullscreen">Full screen</button></div></div><div class="app-frame" id="app-frame">${media('video',D.media.productVideo,'Working product demo','30 seconds · video to be added')}</div>`,
+    product: () => `${heading('From patient details to a destination.')}<div class="live-toolbar"><div class="view-tabs"><button data-mode="demo" aria-pressed="true">Demo</button><button data-mode="live" aria-pressed="false">Try it live</button></div><div><span id="connection" role="status" class="mock-tag">HTML copy of the Overview · rankings from the app's simulation code · synthetic data</span><button id="mock-play">▶ Play demo</button><button id="mock-reset">Reset</button><button id="fullscreen">Full screen</button></div></div><div class="app-frame" id="app-frame"><div class="mock-host" id="mock"></div></div>`,
     screenshot: () => `${heading('Compare. Choose. Start the journey.')} ${media('image',D.media.productScreenshot,'Actual app screenshot','Image to be added')}`,
     simulator: () => live('Testing live coordination without live EMS data','scenarios',true),
-    architecture: () => `${heading('Change the data source. Keep the workflow.')}<div class="architecture"><section class="architecture-flow"><span class="eyebrow">PROPOSED ARCHITECTURE</span>${flow(['<strong>Frontend</strong><small>Next.js</small>','<strong>Backend · API</strong><small>FastAPI · eligibility / prediction / ranking</small>','<strong>Data layer</strong><small>PostgreSQL / Supabase</small>'])}<div class="data-source">↑<strong>Simulator</strong><span>Future: operational feeds</span></div></section><dl class="decisions"><div><dt>Context</dt><dd>Dynamic hospital + ambulance state</dd></div><div><dt>Constraint</dt><dd>No live EMS integration</dd></div><div><dt>Options</dt><dd>Hardcoded demo / fake data in UI / simulator</dd></div><div class="chosen"><dt>Decision</dt><dd>Separate data generation from decision logic</dd></div><div><dt>Tradeoff</dt><dd>Controlled tests ≠ clinical effectiveness</dd></div></dl></div><p class="implementation">Current prototype: React/Vinext · TypeScript API + simulator · Cloudflare D1. Source replacement still requires an adapter.</p>`,
+    architecture: () => `${heading('Change the data source. Keep the workflow.')}<div class="architecture"><section class="architecture-flow"><span class="eyebrow">PROPOSED ARCHITECTURE</span>${flow(['<strong>Frontend</strong><small>Next.js</small>','<strong>Backend · API</strong><small>FastAPI · eligibility / prediction / ranking</small>','<strong>Data layer</strong><small>PostgreSQL / Supabase</small>'])}<div class="data-source">↑<strong>Simulator</strong><span>Future: operational feeds</span></div></section><dl class="decisions"><div><dt>Context</dt><dd>Dynamic hospital + ambulance state</dd></div><div><dt>Constraint</dt><dd>No live EMS integration</dd></div><div><dt>Options</dt><dd>Hardcoded demo / fake data in UI / simulator</dd></div><div class="chosen"><dt>Decision</dt><dd>Separate data generation from decision logic</dd></div><div><dt>Tradeoff</dt><dd>Controlled tests ≠ clinical effectiveness</dd></div></dl></div><div class="contract"><span>Built today: React/Vinext · TypeScript API + simulator · Cloudflare D1</span><code>POST /api/runs/:id/decisions {revision, ambulanceId, hospitalId} → 200 | 400 Zod | 409 stale revision</code><code>D1: simulation_runs · simulation_events</code></div>`,
     evaluation: () => live('Does predicted offload improve the outcome?','evaluation'),
     gate,
     limits: () => `${heading('The boundary of our proof')}<div class="limits"><section><h2>Proven in the simulator</h2><ul class="proven"><li>End-to-end data flow</li><li>Dynamic state updates</li><li>Destination comparison</li><li>Quantitative evaluation</li></ul></section><section><h2>Not proven</h2><ul class="unproven"><li>Actual Ontario operational data</li><li>Clinical outcome improvement</li><li>PDS / hospital integration</li></ul></section></div><p class="takeaway">Next: real operational data + EMS partners.</p>`,
@@ -56,23 +58,35 @@
     });
     void healthCheck();
   }
-  // Product slide: play the 30 s demo, then switch to the real Overview page.
+  // Product slide: clickable copy of the Overview with an autoplay cursor, or the real app.
+  let mock = null;
   function mountProduct() {
-    const frame = $('#app-frame'), video = frame.innerHTML;
+    const frame = $('#app-frame'), tag = $('#connection').textContent;
+    const startMock = () => {
+      frame.innerHTML = '<div class="mock-host" id="mock"></div>';
+      mock = window.mountMock($('#mock'));
+      $('#mock').addEventListener('mockplay', e => { $('#mock-play').textContent = e.detail ? '■ Stop' : '▶ Play demo'; });
+    };
+    startMock();
+    $('#mock-play').onclick = () => mock && (mock.playing ? mock.stop() : mock.play());
+    $('#mock-reset').onclick = () => mock?.reset();
     $('#fullscreen').onclick = () => { const p = document.fullscreenElement ? document.exitFullscreen() : frame.requestFullscreen?.(); p?.catch(() => {}); };
     document.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => {
       const live = b.dataset.mode === 'live';
-      $('video')?.pause();
-      frame.innerHTML = live ? `<iframe src="${esc(appLink('overview'))}" title="Patient overview" allow="fullscreen"></iframe><div id="offline" hidden><h2>Start the app to continue</h2><code>cd ambulance-flow && npm run dev</code><button id="reconnect">Retry connection</button></div>` : video;
+      mock?.destroy(); mock = null;
       document.querySelectorAll('[data-mode]').forEach(btn => btn.setAttribute('aria-pressed', String(btn === b)));
-      $('#connection').textContent = '';
-      if (live) { $('#reconnect').onclick = () => { frame.querySelector('iframe').src += ''; void healthCheck(); }; void healthCheck(); }
+      $('#mock-play').hidden = $('#mock-reset').hidden = live;
+      if (!live) { startMock(); $('#connection').textContent = tag; return; }
+      frame.innerHTML = `<iframe src="${esc(appLink('overview'))}" title="Patient overview" allow="fullscreen"></iframe><div id="offline" hidden><h2>Start the app to continue</h2><code>cd ambulance-flow && npm run dev</code><button id="reconnect">Retry connection</button></div>`;
+      $('#connection').textContent = 'Connecting…';
+      $('#reconnect').onclick = () => { frame.querySelector('iframe').src += ''; void healthCheck(); };
+      void healthCheck();
     });
   }
   const readHash = () => Math.max(0,D.chapters.findIndex(c => c.id===location.hash.slice(1)));
   let index=readHash();
   function render() {
-    generation++;
+    generation++; mock?.destroy(); mock = null;
     $('video')?.pause();
     const c=D.chapters[index];
     $('#chapter').innerHTML = slides[c.id]();
@@ -92,7 +106,7 @@
     if(['ArrowRight','PageDown'].includes(e.key)){e.preventDefault();go(index+1);}
     else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();go(index-1);}
     else if(e.key.toLowerCase()==='t')toggleTimer();
-    else if(/^[1-8]$/.test(e.key))go(D.chapters.findIndex(c=>c.number===e.key));
+    else if(/^[1-9]$/.test(e.key))go(D.chapters.findIndex(c=>c.number===e.key));
   });
   let left=600, running=false, deadline=0;
   function paintTimer(){ $('#timer-main').textContent=`${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}`;$('#timer-main').classList.toggle('running',running);$('#timer-main').setAttribute('aria-pressed',String(running)); }
