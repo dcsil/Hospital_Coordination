@@ -10,7 +10,7 @@
     return kind === 'video' ? `<video class="media" controls preload="metadata" src="${esc(path)}" poster="${esc(path.replace(/\.mp4$/, '-poster.jpg'))}" aria-label="${label}"></video>` : `<img class="media screenshot" src="${esc(path)}" alt="${label}">`;
   }
   // Results slide: baseline vs our app for each stat (evaluation-results.js).
-  const STATS = [['completed', 'Completed', '', 1], ['unfinished', 'Unfinished', '', -1], ['meanOffload', 'Mean offload', ' min', -1], ['meanTravel', 'Mean travel', ' min', -1], ['availability', 'Availability', '%', 1]];
+  const STATS = [['completed', 'Completed', '', 1], ['meanOffload', 'Mean offload', ' min', -1], ['meanTravel', 'Mean travel', ' min', -1]];
   function results() {
     const R = window.EVAL_RESULTS.metrics;
     const groups = STATS.map(([k, label, unit, dir]) => {

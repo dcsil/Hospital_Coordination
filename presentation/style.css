@@ -240,7 +240,7 @@
 .rc-legend{display:flex;gap:26px;font-size:16px}
 .rc-legend i{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:8px;vertical-align:-2px}
 .rc .base{background:#b9a88f}.rc .ours{background:var(--green)}
-.rc-chart{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(16px,3vw,48px);height:clamp(230px,calc(100dvh - 400px),460px)}
+.rc-chart{display:grid;grid-template-columns:repeat(3,1fr);max-width:900px;width:100%;justify-self:center;gap:clamp(16px,3vw,48px);height:clamp(230px,calc(100dvh - 400px),460px)}
 .rc-group{display:grid;grid-template-rows:1fr auto auto;justify-items:center;gap:6px;border-bottom:0}
 .rc-bars{width:100%;display:flex;align-items:flex-end;justify-content:center;gap:10px;border-bottom:2px solid var(--line);height:100%}
 .rc-col{width:min(56px,40%);height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px}
