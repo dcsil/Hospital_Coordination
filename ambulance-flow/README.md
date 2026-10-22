@@ -21,7 +21,6 @@ Open http://127.0.0.1:5173. Apply the initial migration **once** for a new local
 - **Scenario builder:** saved configurations, 5–50 ambulances, 2–10 hospitals, 1–12 hour horizons, configurable arrivals, capacity, handover duration, reporting lag, seeds, policies, and dispatcher approval.
 - **Live operations:** play/pause/stop, speed control, persisted clock, selectable map markers, estimated routes, fleet filtering, event history, and manual destination confirmation.
 - **Hospital network:** queues, inbound commitments, active handovers, P90 offload, completion history, and capacity changes including closure to new handovers.
-- **AI intelligence:** explainable V1 queue-workload predictions, 15/30/60-minute projections, report freshness, sensitivity ranges, and congestion flags.
 - **Evaluation:** matched baseline/coordinated experiments over 3–10 distinct seeds, paired uncertainty intervals, per-seed outcomes, saved results, CSV and full JSON export.
 
 Try the normal scenario, enable dispatcher approval, approve a destination, reduce Toronto General's slots, inspect forecasts, and run a three-seed comparison. The surge preset increases arrivals and reduces the first hospital to one slot at one quarter of the horizon.

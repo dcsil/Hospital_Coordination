@@ -57,7 +57,7 @@ Empty paths show placeholders. Videos use native playback controls and never aut
 | Slide | Content | Time |
 | --- | --- | ---: |
 | 1 | Opening AI video placeholder | 1:00 |
-| 2 | Baseline timeline; offload bottleneck | 1:00 |
+| 2 | Baseline timeline; patient waiting after arrival | 1:00 |
 | 3 | Current vs target journey | 0:45 |
 | 4 | Product video placeholder | 0:30 |
 | 4.5 | Actual app screenshot placeholder | 0:30 |
@@ -72,7 +72,7 @@ Empty paths show placeholders. Videos use native playback controls and never aut
 
 ## Presenter notes (kept off the slides)
 
-**2 — Baseline:** Patient condition determines suitable hospitals. Paramedics/dispatch use PDS, protocols, distance, experience, and sometimes direct confirmation. Transport ends at arrival, but the crew remains unavailable until handover. Interview connection supplied for this presentation: Kelly described PDS as useful but sometimes inaccurate/outdated, with unexpected simultaneous ambulance arrivals. The target is offload time and lost ambulance availability.
+**2 — Baseline:** Focus on the patient's experience: arrival or drop-off at a hospital does not mean care begins immediately. The timeline highlights the wait between arrival and hospital care. Interview connection supplied for this presentation: Kelly described PDS as useful but sometimes inaccurate/outdated, with unexpected simultaneous ambulance arrivals. Keep that interview observation separate from any claim about measured patient waiting times. The current model predicts travel plus offload/handover time, not the additional wait for treatment after handover; this slide describes the patient problem, not a validated time-to-treatment prediction.
 
 **3 — Concept:** Emergency Transport Coordinator compares clinically appropriate hospitals using travel time and expected offload, with the final destination decision kept with the user. “Handover sooner” is the target outcome, not a measured effectiveness claim.
 

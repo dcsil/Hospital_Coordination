@@ -24,8 +24,6 @@ test('complete browser workflow: configure, approve, change capacity, evaluate, 
   await page.getByRole('button', { name: 'Hospital network', exact: true }).click();
   await page.getByLabel('Handover capacity at Toronto General').selectOption('1');
   await expect(page.getByLabel('Handover capacity at Toronto General')).toHaveValue('1');
-  await page.getByRole('button', { name: 'AI intelligence', exact: false }).click();
-  await expect(page.locator('.forecast-grid')).toBeVisible();
   await page.getByRole('button', { name: 'Evaluation', exact: true }).click();
   await page.getByLabel('Distinct seeds').selectOption('3');
   await page.getByRole('button', { name: 'Run comparison', exact: true }).click();
