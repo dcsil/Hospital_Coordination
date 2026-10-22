@@ -7,15 +7,14 @@ window.DECK = {
   //   metric: 'Mean ambulance unavailable minutes per completed call' }
   validation: null,
   chapters: [
-    { id: 'opening', number: '1', label: 'Opening', time: '1:00' },
-    { id: 'title', number: '2', label: 'Kinetic', time: '0:15' },
+    { id: 'title', number: '1', label: 'Kinetic', time: '0:15' },
+    { id: 'opening', number: '2', label: 'Opening', time: '1:00' },
     { id: 'baseline', number: '3', label: 'The bottleneck', time: '1:00' },
     { id: 'concept', number: '4', label: 'The concept', time: '0:45' },
     { id: 'product', number: '5', label: 'Product demo', time: '0:30' },
-    { id: 'simulator', number: '6', label: 'Simulator', time: '2:00' },
-    { id: 'architecture', number: '7', label: 'Architecture', time: '1:30' },
-    { id: 'evaluation', number: '8', label: 'Evaluation', time: '0:30' },
-    { id: 'gate', number: '8.5', label: 'Validation gate', time: '0:30' },
-    { id: 'limits', number: '9', label: 'Limits', time: '0:30' },
+    { id: 'architecture', number: '6', label: 'Architecture', time: '1:30' },
+    { id: 'evaluation', number: '7', label: 'Evaluation', time: '0:30' },
+    { id: 'gate', number: '7.5', label: 'Validation gate', time: '0:30' },
+    { id: 'limits', number: '8', label: 'Limits', time: '0:30' },
   ],
 };
