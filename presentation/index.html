@@ -1,40 +1,23 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Kinetic · Demo 1</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="root">
-      <header class="top">
-        <div class="brand"><strong>Kinetic</strong><span class="muted"> · Demo 1 Surface Product</span></div>
-        <nav class="chapters" id="chapters" aria-label="Slides"></nav>
-        <div class="timer" id="timer">
-          <button type="button" class="timer-main" id="timer-main" title="Start / pause timer (T)">
-            <span class="timer-phase" id="timer-phase">Talk</span>
-            <span class="timer-time" id="timer-time">10:00</span>
-            <span class="timer-dot" id="timer-dot"></span>
-          </button>
-          <button type="button" class="chip-btn" id="timer-qa">Q&amp;A →</button>
-          <button type="button" class="icon-btn" id="timer-reset" title="Reset timer" aria-label="Reset timer">↺</button>
-        </div>
-      </header>
-
-      <main class="stage"><div class="chapter" id="chapter"></div></main>
-
-      <footer class="bottom">
-        <button type="button" class="nav-btn" id="prev" aria-label="Previous slide">←</button>
-        <div class="progress"><span id="progress"></span></div>
-        <span class="speaker" id="speaker"></span>
-        <span class="muted small" id="count"></span>
-        <button type="button" class="nav-btn" id="next" aria-label="Next slide">→</button>
-      </footer>
-    </div>
-
-    <script src="content.js"></script>
-    <script src="accuracy-data.js"></script>
-    <script src="deck.js"></script>
-  </body>
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kinetic · Emergency Transport Coordinator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="root">
+    <header class="top">
+      <a class="brand" href="#opening">KINETIC <span>Emergency Transport Coordinator</span></a>
+      <div class="timer"><button id="timer-main" title="Start / pause (T)" aria-label="Start or pause presentation timer">10:00</button><button id="timer-reset" aria-label="Reset timer">↺</button></div>
+    </header>
+    <main class="stage" id="chapter" tabindex="-1"></main>
+    <footer class="bottom">
+      <button id="prev" aria-label="Previous slide">←</button>
+      <nav id="chapters" aria-label="Slides"></nav>
+      <span id="timing"></span><button id="next" aria-label="Next slide">→</button>
+    </footer>
+  </div>
+  <script src="runtime-config.js"></script><script src="content.js"></script><script src="deck.js"></script>
+</body>
 </html>

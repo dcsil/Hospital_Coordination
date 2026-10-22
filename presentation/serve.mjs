@@ -1,6 +1,6 @@
 // Serves the deck and forwards /api/* to the running Ambulance Flow app, so the
 // live API console works without CORS. No dependencies.
-// Usage: node presentation/serve.mjs   (app on :8787, deck on :5190)
+// Usage: node presentation/serve.mjs   (app on :5173, deck on :5190)
 import http from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname, join, normalize } from "node:path";
@@ -8,11 +8,15 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = fileURLToPath(new URL(".", import.meta.url));
 const PORT = Number(process.env.PORT) || 5190;
-const APP = new URL(process.env.APP_URL || "http://127.0.0.1:8787");
-const TYPES = { ".html": "text/html", ".css": "text/css", ".js": "text/javascript", ".mjs": "text/javascript", ".jpg": "image/jpeg", ".png": "image/png", ".svg": "image/svg+xml" };
+const APP = new URL(process.env.APP_URL || "http://127.0.0.1:5173");
+const TYPES = { ".html": "text/html", ".css": "text/css", ".js": "text/javascript", ".mjs": "text/javascript", ".jpg": "image/jpeg", ".png": "image/png", ".svg": "image/svg+xml", ".mp4": "video/mp4", ".webm": "video/webm" };
 
 http
   .createServer(async (req, res) => {
+    if (req.url === "/runtime-config.js") {
+      res.writeHead(200, { "Content-Type": "application/javascript", "Cache-Control": "no-store" });
+      return res.end(`window.PRESENTATION_CONFIG = ${JSON.stringify({ appUrl: APP.href })};`);
+    }
     if (req.url.startsWith("/api/")) {
       // GET-only proxy: the deck reads app state, it never writes.
       if (req.method !== "GET") return res.writeHead(405).end();
