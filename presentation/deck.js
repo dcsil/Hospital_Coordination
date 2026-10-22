@@ -37,7 +37,7 @@
     </div></div>`,
     evaluation: () => `<div class="live-toolbar"><span class="muted">The real app · Evaluation page · matched seeds, nearest vs coordinated</span><div><span id="connection" role="status">Connecting…</span><button id="retry">Reload</button><button id="fullscreen">Full screen</button></div></div><div class="app-frame" id="app-frame"><iframe src="${esc(appLink('evaluation'))}" title="Routing evaluation" allow="fullscreen"></iframe><div id="offline" hidden><h2>Start the app to continue</h2><code>cd ambulance-flow && npm run dev</code><button id="reconnect">Retry connection</button></div></div>`,
     results,
-    closing: () => `<div class="title-slide closing"><span class="eyebrow">KINETIC · EMERGENCY TRANSPORT COORDINATOR</span><h1>Thank you</h1><p class="tagline">Less time waiting at the hospital. More time on the road.</p><p class="questions">Questions?</p></div>`,
+    closing: () => `<div class="title-slide closing"><span class="eyebrow">KINETIC · EMERGENCY TRANSPORT COORDINATOR</span><h1>Thank you</h1><p class="tagline">Less time waiting at the hospital.</p><p class="questions">Questions?</p></div>`,
     limits: () => `${heading('The boundary of our proof')}<div class="limits"><section><h2>Shown in Our MVP</h2><ul class="proven"><li>End-to-end data flow</li><li>Dynamic state updates</li><li>Destination comparison</li><li>Quantitative evaluation</li></ul></section><section><h2>Not proven</h2><ul class="unproven"><li>Actual Ontario operational data</li><li>Clinical outcome improvement</li><li>Patient Distribution System / hospital integration</li></ul></section></div><p class="takeaway">Next: real operational data + EMS partners.</p>`,
   };
   let generation = 0;
