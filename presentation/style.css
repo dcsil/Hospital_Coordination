@@ -2,3 +2,7 @@
 @media(min-width:801px){.stage:has(.app-frame){height:calc(100dvh - 138px);display:flex;flex-direction:column}.stage:has(.app-frame)>h1,.live-toolbar{flex-shrink:0}.app-frame{flex:1;min-height:0;height:auto}}
 
 @media(max-width:800px){.timeline li{font-size:23px}.timeline .arrival{font-size:19px}.timeline .bottleneck{font-size:28px}}
+
+/* Slide 5 gives the simulator the full content area. */
+.stage:has(.view-tabs){padding:12px 2vw}.stage:has(.view-tabs) .app-frame{height:calc(100dvh - 215px);min-height:300px}
+@media(min-width:801px){.stage:has(.view-tabs) .app-frame{height:auto;min-height:0}}
