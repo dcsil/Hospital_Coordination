@@ -17,7 +17,7 @@
       const m = R[k], max = Math.max(m.baseline, m.coordinated) * 1.15;
       const sure = m.ciLow * m.ciHigh > 0, tone = !sure ? 'flat' : m.delta * dir > 0 ? 'good' : 'bad';
       const bar = (v, cls) => `<div class="rc-col"><b>${v}${unit}</b><i class="${cls}" style="height:calc(${(v / max * 100).toFixed(1)}% - 30px)"></i></div>`;
-      return `<div class="rc-group"><div class="rc-bars">${bar(m.baseline, 'base')}${bar(m.coordinated, 'ours')}</div><strong>${label}</strong><span class="rc-delta ${tone}">${tone === 'flat' ? 'no clear change' : `${m.delta > 0 ? '+' : '−'}${Math.abs(m.delta)}${unit}`}</span></div>`;
+      return `<div class="rc-group"><div class="rc-bars">${bar(m.baseline, 'base')}${bar(m.coordinated, 'ours')}</div><strong>${label}</strong><span class="rc-delta ${tone}">${tone === 'flat' ? 'no clear change' : `${m.delta > 0 ? '+' : '−'}${Math.abs(m.delta)}${unit} (${m.delta > 0 ? '+' : '−'}${Math.abs(m.delta / m.baseline * 100).toFixed(0)}%)`}</span></div>`;
     }).join('');
     return `${heading('Early simulation results')}<div class="rc"><div class="rc-legend"><span><i class="base"></i>Baseline: nearest hospital</span><span><i class="ours"></i>Our app</span></div><div class="rc-chart">${groups}</div><p class="rc-foot">We used a Python simulation with synthetic data (mean of 5 simulated shifts). Later on we will improve the data.</p></div>`;
   }

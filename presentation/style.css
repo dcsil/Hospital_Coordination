@@ -257,3 +257,10 @@
 .rc-col b{font-weight:500;color:var(--muted)}
 .rc-delta,.rc-delta.good,.rc-delta.bad,.rc-delta.flat{background:none;padding:0;font-weight:500;font-size:13px;color:var(--muted)}
 .rc-foot{font-size:15px;color:var(--ink)}
+/* Results: larger chart */
+.rc-chart{max-width:1120px;height:clamp(200px,calc(100dvh - 420px),560px)}
+.rc-col{width:min(96px,42%)}
+.rc-col b{font-size:clamp(16px,2.5vh,22px)}
+.rc-group>strong{font-size:clamp(17px,2.6vh,23px)}
+.rc-delta,.rc-delta.good,.rc-delta.bad,.rc-delta.flat{font-size:clamp(14px,2.1vh,18px)}
+.rc-bars{gap:14px}
