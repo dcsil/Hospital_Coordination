@@ -7,7 +7,10 @@ window.mountMock = (host) => {
   const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const URG = ['low', 'moderate', 'critical'];
   let s = { location: '', urgency: '', journey: null, hover: null };
-  let timer = 0, playing = false, token = 0, minuteMs = 1000;
+  let timer = 0, playing = false, paused = false, token = 0, minuteMs = 1000;
+  const SLOW = 1.7; // autopilot pacing
+  let pausedAt = 0, pausedTotal = 0;
+  const now = () => (paused ? pausedAt : performance.now()) - pausedTotal;
 
   host.innerHTML = `<div class="pm-fit"><div class="pm-app" style="width:${W}px;height:${H}px">
     <header class="pm-top"><b>Ambulance Flow</b><nav><span class="on">Overview</span><span>Scenario builder</span><span>Live operations</span><span>Hospital network</span><span>Evaluation</span></nav></header>
@@ -15,9 +18,10 @@ window.mountMock = (host) => {
     <div class="pm-caption" id="pm-caption" hidden></div>
     <div class="pm-cursor" id="pm-cursor" hidden><svg viewBox="0 0 24 24" width="30" height="30"><path d="M4 2l15 11-6.5 1.2L16 21l-3 1.3-3.4-6.6L4 20z" fill="#14231c" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
     <button class="pm-play" id="pm-play" aria-label="Play demo"><span>▶</span>Play demo</button>
+    <button class="pm-pause" id="pm-pause" hidden aria-label="Pause demo">❚❚</button>
   </div></div>`;
   const app = host.querySelector('.pm-app'), panel = host.querySelector('#pm-panel');
-  const cursor = host.querySelector('#pm-cursor'), caption = host.querySelector('#pm-caption'), bigPlay = host.querySelector('#pm-play');
+  const cursor = host.querySelector('#pm-cursor'), caption = host.querySelector('#pm-caption'), bigPlay = host.querySelector('#pm-play'), pauseBtn = host.querySelector('#pm-pause');
 
   // Scale the fixed-size app to fit the frame, so nothing ever scrolls.
   const fit = () => {
@@ -53,17 +57,17 @@ window.mountMock = (host) => {
         <div class="pm-options">${ranked().map((r, i) => `<label class="pm-option ${j.selected === r.id ? 'chosen' : ''} ${s.hover === r.id ? 'hover' : ''}" data-pick="${r.id}"><input type="radio" name="pm-h" ${j.selected === r.id ? 'checked' : ''}><div>${i === 0 ? '<span class="pm-rec">RECOMMENDED</span>' : ''}<strong>${i + 1}. ${esc(r.name)}</strong><small>${r.travel} min travel + ${r.offload} min offload</small></div><b>${r.total}<small>min total</small></b></label>`).join('')}</div>
         <button class="pm-submit" id="pm-start">➤ Start route to ${esc(chosen().name)}</button><button class="pm-back" id="pm-edit">Edit patient details</button>`;
       panel.querySelectorAll('[data-pick]').forEach(l => l.onclick = (e) => { e.preventDefault(); j.selected = l.dataset.pick; draw(); });
-      panel.querySelector('#pm-start').onclick = () => { j.status = 'en_route'; j.started = Date.now(); draw(); };
+      panel.querySelector('#pm-start').onclick = () => { j.status = 'en_route'; j.started = now(); draw(); };
       panel.querySelector('#pm-edit').onclick = () => { s.journey = null; draw(); };
       return;
     }
     const c = chosen();
     panel.innerHTML = `${head}<div class="pm-dest"><span class="pm-icon">${j.status === 'arrived' ? '✓' : '➤'}</span><h3>${esc(c.name)}</h3><p>${esc(J.addresses[c.id] || '')}</p><div class="pm-total"><strong>${c.total}<small> min</small></strong><span>Predicted total at departure</span></div><p>${c.travel} min travel + ${c.offload} min offload</p></div>
-      ${j.status === 'en_route' ? `<div class="pm-progress"><div id="pm-bar"></div></div><p class="pm-status" id="pm-left"></p><button class="pm-submit" id="pm-arrived">✓ Arrived at hospital</button><p class="pm-note">Demo speed: 1 second = ${minuteMs === 1000 ? '1 travel minute' : `${Math.round(1000 / minuteMs)} travel minutes`}.</p>`
+      ${j.status === 'en_route' ? `<div class="pm-progress"><div id="pm-bar"></div></div><p class="pm-status" id="pm-left"></p><button class="pm-submit" id="pm-arrived">✓ Arrived at hospital</button><p class="pm-note">Demo speed: 1 second = ${minuteMs === 1000 ? '1 travel minute' : `${+(1000 / minuteMs).toFixed(1)} travel minutes`}.</p>`
         : `<p class="pm-success">Arrival confirmed. This trip is complete.</p><button class="pm-submit" id="pm-new">↺ New patient journey</button>`}`;
     if (j.status === 'en_route') {
       const tick = () => {
-        const p = Math.min(1, (Date.now() - j.started) / (c.travel * minuteMs));
+        const p = Math.min(1, (now() - j.started) / (c.travel * minuteMs));
         panel.querySelector('#pm-bar').style.width = `${p * 100}%`;
         panel.querySelector('#pm-left').textContent = p < 1 ? `${Math.ceil(c.travel * (1 - p))} simulated min to arrival` : 'Destination reached in preview. Confirm your arrival below.';
         if (p >= 1) clearInterval(timer);
@@ -74,14 +78,29 @@ window.mountMock = (host) => {
   }
 
   // ---- autopilot ----
-  const wait = (ms, t) => new Promise((ok, no) => setTimeout(() => t === token ? ok() : no(), ms));
+  // Waits and cursor moves run on now(), so pausing freezes everything in place.
+  const wait = (ms, t) => new Promise((ok, no) => {
+    const end = now() + ms * SLOW;
+    (function check() { if (t !== token) return no(); if (now() >= end) return ok(); setTimeout(check, 30); })();
+  });
   const pos = { x: W * 0.62, y: H * 0.9 };
+  const place = (x, y) => { cursor.style.transform = `translate(${x - 6}px,${y - 4}px)`; };
   const at = (el) => { const a = app.getBoundingClientRect(), b = el.getBoundingClientRect(), k = a.width / W; return { x: (b.left - a.left + b.width / 2) / k, y: (b.top - a.top + b.height / 2) / k }; };
+  const ease = (p) => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+  function glide(to, ms, t) {
+    const from = { ...pos }, start = now(), dur = ms * SLOW;
+    return new Promise((ok, no) => {
+      (function frame() {
+        if (t !== token) return no();
+        const p = Math.min(1, (now() - start) / dur), e = ease(p);
+        pos.x = from.x + (to.x - from.x) * e; pos.y = from.y + (to.y - from.y) * e; place(pos.x, pos.y);
+        p < 1 ? requestAnimationFrame(frame) : ok();
+      })();
+    });
+  }
   async function moveTo(sel, t, ms = 700) {
-    const el = panel.querySelector(sel); const to = at(el);
-    cursor.style.transition = `transform ${ms}ms cubic-bezier(.45,.05,.2,1)`;
-    cursor.style.transform = `translate(${to.x - 6}px,${to.y - 4}px)`; Object.assign(pos, to);
-    await wait(ms + 120, t); return el;
+    const el = panel.querySelector(sel);
+    await glide(at(el), ms, t); await wait(120, t); return el;
   }
   async function click(sel, t) {
     const el = await moveTo(sel, t);
@@ -90,15 +109,23 @@ window.mountMock = (host) => {
     await wait(250, t);
   }
   function say(n, text) { caption.hidden = !text; caption.innerHTML = text ? `${n ? `<span>${n}</span>` : ''}${text}` : ''; }
+  function setPaused(on) {
+    if (on === paused || (on && !playing)) return;
+    if (on) pausedAt = performance.now(); else pausedTotal += performance.now() - pausedAt;
+    paused = on; app.classList.toggle('pm-paused', on);
+    pauseBtn.textContent = on ? '▶' : '❚❚'; pauseBtn.setAttribute('aria-label', on ? 'Resume demo' : 'Pause demo');
+    host.dispatchEvent(new CustomEvent('mockpause', { detail: on }));
+  }
   function setPlaying(on) {
-    playing = on; app.classList.toggle('pm-auto', on); cursor.hidden = !on; bigPlay.hidden = true;
+    if (!on) setPaused(false);
+    playing = on; app.classList.toggle('pm-auto', on); cursor.hidden = !on; bigPlay.hidden = true; pauseBtn.hidden = !on;
     host.dispatchEvent(new CustomEvent('mockplay', { detail: on }));
     if (!on) { say(); minuteMs = 1000; }
   }
   async function play() {
     const t = ++token; setPlaying(true);
     s = { location: '', urgency: '', journey: null, hover: null }; draw();
-    cursor.style.transition = 'none'; cursor.style.transform = `translate(${W * 0.62}px,${H * 0.9}px)`;
+    pos.x = W * 0.62; pos.y = H * 0.9; place(pos.x, pos.y);
     try {
       await wait(400, t);
       say('1', 'Where is the patient?'); await click('[data-place="Yonge & Bloor"]', t); await wait(500, t);
@@ -109,7 +136,7 @@ window.mountMock = (host) => {
       say('', '<b>Nearest isn\'t fastest.</b>&nbsp;Toronto General is 4 min away but ranks last'); await wait(3200, t);
       s.hover = null; draw();
       say('4', 'The user makes the final choice'); await click('[data-pick="sjh"]', t); await wait(500, t);
-      minuteMs = 250; await click('#pm-start', t);
+      minuteMs = 250 * SLOW; await click('#pm-start', t);
       say('', 'Track the trip to the hospital'); await moveTo('#pm-arrived', t, 1200); await wait(3400, t);
       await click('#pm-arrived', t);
       say('', 'Arrived. Ready for the next patient.'); await wait(2600, t);
@@ -117,7 +144,8 @@ window.mountMock = (host) => {
     } catch { /* stopped */ }
   }
   function stop() { token++; setPlaying(false); s.hover = null; draw(); }
-  bigPlay.onclick = play;
+  const togglePause = () => setPaused(!paused);
+  bigPlay.onclick = play; pauseBtn.onclick = togglePause;
   draw();
-  return { play, stop, get playing() { return playing; }, reset() { stop(); s = { location: '', urgency: '', journey: null, hover: null }; draw(); bigPlay.hidden = false; }, destroy() { token++; clearInterval(timer); ro.disconnect(); } };
+  return { play, stop, togglePause, get playing() { return playing; }, get paused() { return paused; }, reset() { stop(); s = { location: '', urgency: '', journey: null, hover: null }; draw(); bigPlay.hidden = false; }, destroy() { token++; clearInterval(timer); ro.disconnect(); } };
 };

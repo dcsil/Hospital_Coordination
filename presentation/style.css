@@ -179,3 +179,56 @@
 .team figcaption{font-size:18px;font-weight:600}
 .team small{display:block;font-weight:400;font-size:13px;margin-top:3px}
 .title-slide{height:auto;min-height:calc(100dvh - 210px)}
+
+/* Product demo pause */
+.pm-pause{position:absolute;right:20px;bottom:20px;z-index:6;width:52px;height:52px;border-radius:50%;border:0;background:rgba(16,32,24,.85);color:white;font-size:17px;display:grid;place-items:center;padding:0}
+.pm-pause:hover{background:#1b4a39}
+.pm-pause[hidden]{display:none}
+.pm-paused .pm-caption{outline:2px solid #ffcf7a}
+
+/* Architecture diagram */
+.arch{display:grid;gap:18px;justify-items:center}
+.arch-grid{width:100%;max-width:1240px;display:grid;grid-template-columns:1fr 92px 1.4fr 92px 1fr;grid-template-rows:auto auto;align-items:center;row-gap:14px}
+.arch-node{background:white;border:1px solid var(--line);border-radius:18px;padding:clamp(16px,2.6vh,28px) 24px;text-align:center;display:grid;gap:6px;box-shadow:0 10px 30px rgba(35,60,50,.06)}
+.arch-tag{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700}
+.arch-node strong{font-size:clamp(24px,3.4vh,32px);letter-spacing:-.5px}
+.arch-node small{font-size:15px;line-height:1.4}
+.arch-backend{background:var(--soft);border-color:#b8cbb6}
+.arch-backend ul{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.arch-backend li{background:white;border:1px solid #c9d8c6;border-radius:10px;padding:clamp(6px,1.1vh,10px) 8px;font-size:15px}
+.arch-link{position:relative;height:2px;background:#9db3a1;margin:0 6px}
+.arch-link:after{content:'';position:absolute;right:-2px;top:-5px;border:6px solid transparent;border-left:8px solid #9db3a1;border-right:0}
+.arch-link:before{content:'';position:absolute;left:-2px;top:-5px;border:6px solid transparent;border-right:8px solid #9db3a1;border-left:0}
+.arch-link span{position:absolute;left:50%;top:-24px;transform:translateX(-50%);font-size:11px;letter-spacing:1px;color:var(--muted);white-space:nowrap}
+.arch-feed{grid-column:5;display:grid;justify-items:center;gap:8px;text-align:center}
+.arch-feed>b{font-size:24px;color:#8aa18d;line-height:1}
+.arch-feed>div{width:100%;border:1px solid var(--line);background:white;border-radius:12px;padding:10px 14px;display:grid;gap:2px}
+.arch-feed strong{font-size:17px}.arch-feed small{font-size:12.5px;color:var(--muted)}
+.arch-feed .arch-future{border-style:dashed;background:transparent}
+.arch+.implementation{margin-top:22px}
+@media(max-width:800px){.arch-grid{grid-template-columns:1fr;row-gap:10px}.arch-link{width:2px;height:28px;margin:0 auto}.arch-link:before,.arch-link:after,.arch-link span{display:none}.arch-feed{grid-column:1}}
+
+/* Backend split: hospital vs ambulance */
+.arch-split{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;text-align:left}
+.arch-side{border-radius:12px;padding:10px 12px;border:1px solid}
+.arch-side>span{display:block;font-size:12px;font-weight:700;letter-spacing:.5px;margin-bottom:6px}
+.arch-side ul{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+.arch-side li{background:white;border-radius:8px;padding:clamp(4px,.8vh,8px) 10px;font-size:14px;border:1px solid}
+.arch-side.hosp{background:#eef4fa;border-color:#b7cde3}.arch-side.hosp>span{color:#2f5f8a}.arch-side.hosp li{border-color:#cddcea}
+.arch-side.amb{background:#fbf2e8;border-color:#e6c9a6}.arch-side.amb>span{color:#9c5029}.arch-side.amb li{border-color:#eedcc6}
+
+/* Slide 4: size everything from the window height so it never scrolls */
+@media(min-width:801px){
+.stage:has(.comparison){height:calc(100dvh - 138px);display:flex;flex-direction:column;padding-top:clamp(14px,3vh,32px);padding-bottom:clamp(10px,2vh,24px);overflow:hidden}
+.stage:has(.comparison)>h1{font-size:min(3.2vw,5.4vh,48px);margin-bottom:clamp(10px,2.2vh,28px);flex-shrink:0}
+.stage .comparison{flex:1 1 auto;min-height:0;align-items:stretch}
+.stage .comparison section{padding:clamp(8px,1.8vh,24px) 28px;display:flex;flex-direction:column;justify-content:center}
+.stage .comparison h2{margin-bottom:clamp(2px,.8vh,16px);font-size:clamp(12px,1.7vh,16px)}
+.stage .comparison .flow li{font-size:clamp(13px,2.15vh,20px);padding:clamp(1px,.45vh,8px) 0}
+.stage .comparison .flow li:not(:last-child):after{margin-top:clamp(1px,.45vh,12px);line-height:1.1}
+.stage:has(.comparison) .takeaway{font-size:clamp(14px,2.2vh,21px);margin-top:clamp(8px,2vh,26px);flex-shrink:0}
+}
+@media(min-width:801px){.stage .comparison section{justify-content:flex-start}.stage .comparison .flow{margin:auto 0}.stage .comparison .flow li{font-size:clamp(13px,2.6vh,22px)}}
+
+/* Slide 6 on short screens */
+@media(min-width:801px) and (max-height:780px){.arch{gap:10px}.arch-node{padding:12px 18px;gap:4px}.arch-node small{font-size:13px}.arch-split{margin-top:6px}.arch-side{padding:7px 10px}.arch-side li{font-size:13px;padding:3px 8px}.arch-feed{gap:4px}.arch-feed>div{padding:6px 12px}.arch-grid{row-gap:8px}}
