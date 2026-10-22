@@ -1,7 +1,7 @@
 // Add media paths here when the final assets are ready.
 window.DECK = {
   appUrl: window.PRESENTATION_CONFIG?.appUrl || 'http://127.0.0.1:5173/',
-  media: { openingVideo: '', productVideo: '', productScreenshot: '' },
+  media: { openingVideo: 'assets/opening.mp4', productVideo: 'assets/product-demo.mp4', productScreenshot: '' },
   // Keep null until this exact metric and eligibility have been measured.
   // { baselineMinutes, coordinatedMinutes, eligibilityViolations, source,
   //   metric: 'Mean ambulance unavailable minutes per completed call' }

@@ -50,7 +50,7 @@ media: {
 },
 ```
 
-Empty paths show placeholders. Videos use native playback controls and never autoplay. Leaving the slide stops playback. The screenshot fits without cropping.
+Both videos are now in `assets/`: `opening.mp4` (66 s, AI narration and generated sound over motion graphics, incident facts from Shared Health Manitoba and CBC) and `product-demo.mp4` (30 s, cut from a real screen recording of the patient Overview). A video shows `<name>-poster.jpg` before it plays. The product slide has a **Demo video / Try it live** toggle that swaps the video for the real Overview page. Empty paths show placeholders. Videos use native playback controls and never autoplay. Leaving the slide stops playback. The screenshot fits without cropping.
 
 ## Order and timing
 

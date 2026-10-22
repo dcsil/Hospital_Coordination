@@ -7,7 +7,7 @@
   const flow = (items) => `<ol class="flow">${items.map(item => `<li>${item}</li>`).join('')}</ol>`;
   function media(kind, path, label, duration) {
     if (!path) return `<div class="media-placeholder"><span class="media-symbol">${kind === 'video' ? '▷' : '▧'}</span><h2>${label}</h2><p>${duration}</p></div>`;
-    return kind === 'video' ? `<video class="media" controls preload="metadata" src="${esc(path)}" aria-label="${label}"></video>` : `<img class="media screenshot" src="${esc(path)}" alt="${label}">`;
+    return kind === 'video' ? `<video class="media" controls preload="metadata" src="${esc(path)}" poster="${esc(path.replace(/\.mp4$/, '-poster.jpg'))}" aria-label="${label}"></video>` : `<img class="media screenshot" src="${esc(path)}" alt="${label}">`;
   }
   function live(title, hash, simulator = false) {
     return `${heading(title)}<div class="live-toolbar">${simulator ? '<div class="view-tabs"><button data-view="scenarios" aria-pressed="true">Setup</button><button data-view="operations" aria-pressed="false">Live operations</button></div>' : '<span class="muted">Matched seeds · nearest vs coordinated</span>'}<div><span id="connection" role="status">Connecting…</span><button id="retry">Reload</button><a id="open-app" href="${esc(appLink(hash))}" target="_blank" rel="noreferrer">Open app ↗</a><button id="fullscreen">Full screen</button></div></div><div class="app-frame" id="app-frame"><iframe src="${esc(appLink(hash))}" title="${simulator ? 'Ambulance simulator' : 'Routing evaluation'}" allow="fullscreen"></iframe><div id="offline" hidden><h2>Start the app to continue</h2><code>cd ambulance-flow && npm run dev</code><button id="reconnect">Retry connection</button></div></div>`;
@@ -23,7 +23,7 @@
     opening: () => `${heading('Every minute matters.')} ${media('video', D.media.openingVideo, 'Opening AI video', '1 minute · video to be added')}`,
     baseline: () => `${heading('Today, the ambulance journey does not end at hospital arrival')}<div class="baseline-layout"><ol class="timeline">${['911 call','Patient assessment','Suitable hospitals','Destination decision','Transport','ARRIVAL','OFFLOAD WAIT','Patient handover','Ambulance available again'].map((s,i) => `<li class="${i===6?'bottleneck':i===5?'arrival':''}"><span>${s}</span></li>`).join('')}</ol><div class="baseline-message"><span class="eyebrow">THE BOTTLENECK</span><h2>Waiting here.<br>Unavailable for<br>the next call.</h2><p>Offload time → lost ambulance availability</p></div></div>`,
     concept: () => `${heading('What if offload time became part of the destination decision?')}<div class="comparison"><section><h2>Current</h2>${flow(['Suitable hospitals','Current information','Choose destination','Travel','<em>Unknown offload wait</em>'])}</section><section class="target"><h2>Target</h2>${flow(['Suitable hospitals','<b>Travel + hospital state<br>+ inbound ambulances + predicted offload</b>','Compare destinations','<strong>Human chooses</strong>','Handover sooner → return to service'])}</section></div><p class="takeaway">Compare clinically appropriate hospitals by travel + expected offload.<br><strong>The user makes the final decision.</strong></p>`,
-    product: () => `${heading('From patient details to a destination.')} ${media('video',D.media.productVideo,'Working product demo','30 seconds · video to be added')}`,
+    product: () => `${heading('From patient details to a destination.')}<div class="live-toolbar"><div class="view-tabs"><button data-mode="video" aria-pressed="true">Demo video</button><button data-mode="live" aria-pressed="false">Try it live</button></div><div><span id="connection" role="status"></span><button id="fullscreen">Full screen</button></div></div><div class="app-frame" id="app-frame">${media('video',D.media.productVideo,'Working product demo','30 seconds · video to be added')}</div>`,
     screenshot: () => `${heading('Compare. Choose. Start the journey.')} ${media('image',D.media.productScreenshot,'Actual app screenshot','Image to be added')}`,
     simulator: () => live('Testing live coordination without live EMS data','scenarios',true),
     architecture: () => `${heading('Change the data source. Keep the workflow.')}<div class="architecture"><section class="architecture-flow"><span class="eyebrow">PROPOSED ARCHITECTURE</span>${flow(['<strong>Frontend</strong><small>Next.js</small>','<strong>Backend · API</strong><small>FastAPI · eligibility / prediction / ranking</small>','<strong>Data layer</strong><small>PostgreSQL / Supabase</small>'])}<div class="data-source">↑<strong>Simulator</strong><span>Future: operational feeds</span></div></section><dl class="decisions"><div><dt>Context</dt><dd>Dynamic hospital + ambulance state</dd></div><div><dt>Constraint</dt><dd>No live EMS integration</dd></div><div><dt>Options</dt><dd>Hardcoded demo / fake data in UI / simulator</dd></div><div class="chosen"><dt>Decision</dt><dd>Separate data generation from decision logic</dd></div><div><dt>Tradeoff</dt><dd>Controlled tests ≠ clinical effectiveness</dd></div></dl></div><p class="implementation">Current prototype: React/Vinext · TypeScript API + simulator · Cloudflare D1. Source replacement still requires an adapter.</p>`,
@@ -56,6 +56,19 @@
     });
     void healthCheck();
   }
+  // Product slide: play the 30 s demo, then switch to the real Overview page.
+  function mountProduct() {
+    const frame = $('#app-frame'), video = frame.innerHTML;
+    $('#fullscreen').onclick = () => { const p = document.fullscreenElement ? document.exitFullscreen() : frame.requestFullscreen?.(); p?.catch(() => {}); };
+    document.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => {
+      const live = b.dataset.mode === 'live';
+      $('video')?.pause();
+      frame.innerHTML = live ? `<iframe src="${esc(appLink('overview'))}" title="Patient overview" allow="fullscreen"></iframe><div id="offline" hidden><h2>Start the app to continue</h2><code>cd ambulance-flow && npm run dev</code><button id="reconnect">Retry connection</button></div>` : video;
+      document.querySelectorAll('[data-mode]').forEach(btn => btn.setAttribute('aria-pressed', String(btn === b)));
+      $('#connection').textContent = '';
+      if (live) { $('#reconnect').onclick = () => { frame.querySelector('iframe').src += ''; void healthCheck(); }; void healthCheck(); }
+    });
+  }
   const readHash = () => Math.max(0,D.chapters.findIndex(c => c.id===location.hash.slice(1)));
   let index=readHash();
   function render() {
@@ -68,6 +81,7 @@
     $('#timing').textContent=`${c.time} · ${c.label}`;
     $('#prev').disabled=index===0; $('#next').disabled=index===D.chapters.length-1;
     if(c.id==='simulator'||c.id==='evaluation') mountLive();
+    if(c.id==='product') mountProduct();
     document.querySelectorAll('.media').forEach(el => el.addEventListener('error',()=> { el.outerHTML='<div class="media-placeholder"><h2>Media unavailable</h2><p>Check the asset path in content.js.</p></div>'; },{once:true}));
   }
   function go(i) { index=Math.max(0,Math.min(D.chapters.length-1,i));history.replaceState(null,'',`#${D.chapters[index].id}`);render();$('#chapter').focus({preventScroll:true}); }
