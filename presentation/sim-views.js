@@ -99,7 +99,7 @@
   };
 
   // ---------- Evaluation: nearest vs coordinated on matched seeds ----------
-  const METRICS = { meanOffload: ['Mean offload', 'min', -1], p90Offload: ['P90 offload', 'min', -1], meanTravel: ['Mean travel', 'min', -1], availability: ['Fleet availability', '%', 1], completed: ['Completed handovers', '', 1], unfinished: ['Unfinished cases', '', -1] };
+  const METRICS = { meanOffload: ['Mean offload', 'min', -1], meanTravel: ['Mean travel', 'min', -1], completed: ['Completed handovers', '', 1], unfinished: ['Unfinished cases', '', -1] };
   window.mountEvaluation = (host) => {
     const { el, ro } = canvas(host);
     let cfg = { preset: 'normal', seeds: 5 }, result = null, traces = null;
@@ -112,22 +112,17 @@
     }
     function draw() {
       const s = result.summary, rows = result.rows;
-      const maxOff = Math.max(...rows.map(r => r.metrics.meanOffload)) * 1.1;
-      const seedBars = result.seeds.map(seed => { const n = rows.find(r => r.seed === seed && r.policy === 'nearest').metrics.meanOffload, c = rows.find(r => r.seed === seed && r.policy === 'coordinated').metrics.meanOffload; return `<div class="ev-seed"><div class="ev-bars"><i class="n" style="height:${n / maxOff * 100}%" title="${n}"><span>${n}</span></i><i class="c" style="height:${c / maxOff * 100}%" title="${c}"><span>${c}</span></i></div><small>seed ${seed}</small></div>`; }).join('');
       const maxQ = Math.max(1, ...traces.flat());
       const line = (t) => t.map((v, i) => `${(i / (t.length - 1) * 400).toFixed(1)},${(150 - v / maxQ * 140).toFixed(1)}`).join(' ');
       el.innerHTML = `<div class="ev">
         <div class="ev-controls"><div><span class="sv-k">Scenario</span><div class="sv-seg">${PRESETS.map(([id, t]) => `<button data-preset="${id}" class="${cfg.preset === id ? 'on' : ''}">${t}</button>`).join('')}</div></div>
-          <div><span class="sv-k">Matched seeds</span><div class="sv-seg">${[3, 5, 10].map(n => `<button data-seeds="${n}" class="${cfg.seeds === n ? 'on' : ''}">${n}</button>`).join('')}</div></div>
-          <p>Same incidents per seed. Only the destination policy changes. ${Sim.DEFAULT_CONFIG.fleet} ambulances · ${Sim.DEFAULT_CONFIG.hospitals} hospitals · 4 h.</p></div>
-        <div class="ev-grid"><section class="sv-card ev-table"><h4>Strategy comparison <small>mean of ${result.seeds.length} seeds · 95% CI of the difference</small></h4>
-          <table><thead><tr><th></th><th>Nearest</th><th>Coordinated</th><th>Difference</th></tr></thead><tbody>${s.map(r => { const [l, u, dir] = METRICS[r.metric]; const good = r.delta * dir > 0, sure = r.ciLow * r.ciHigh > 0; return `<tr><td>${l}${u ? ` <small>(${u})</small>` : ''}</td><td>${r.baseline}</td><td><b>${r.coordinated}</b></td><td class="${sure ? good ? 'good' : 'bad' : 'flat'}">${r.delta > 0 ? '+' : ''}${r.delta}<small> [${r.ciLow}, ${r.ciHigh}]</small></td></tr>`; }).join('')}</tbody></table>
-          <p class="ev-note">Green or red only when the interval excludes 0. These are synthetic runs. They do not measure full-call unavailable time or eligibility violations, so the go/no-go gate stays untested.</p></section>
-          <section class="sv-card"><h4>Mean offload by seed <small>min</small></h4><div class="ev-seeds">${seedBars}</div><div class="sv-legend"><span><i style="background:#b9a88f"></i>Nearest</span><span><i style="background:#235d48"></i>Coordinated</span></div></section>
-          <section class="sv-card"><h4>Network queue over time <small>seed 1 · ambulances waiting to offload</small></h4><svg viewBox="0 0 400 155" preserveAspectRatio="none" class="ev-line"><polyline points="${line(traces[0])}" class="n"/><polyline points="${line(traces[1])}" class="c"/></svg><div class="sv-legend"><span><i style="background:#b9a88f"></i>Nearest</span><span><i style="background:#235d48"></i>Coordinated</span><span style="margin-left:auto">08:00 → 12:00</span></div></section></div></div>`;
+          <p>5 matched seeds. Only the destination policy changes.</p></div>
+        <div class="ev-grid"><section class="sv-card ev-table"><h4>Nearest vs coordinated <small>95% CI in brackets</small></h4>
+          <table><thead><tr><th></th><th>Nearest</th><th>Coordinated</th><th>Difference</th></tr></thead><tbody>${s.filter(r => METRICS[r.metric]).map(r => { const [l, u, dir] = METRICS[r.metric]; const good = r.delta * dir > 0, sure = r.ciLow * r.ciHigh > 0; return `<tr><td>${l}${u ? ` <small>(${u})</small>` : ''}</td><td>${r.baseline}</td><td><b>${r.coordinated}</b></td><td class="${sure ? good ? 'good' : 'bad' : 'flat'}">${r.delta > 0 ? '+' : ''}${r.delta}<small> [${r.ciLow}, ${r.ciHigh}]</small></td></tr>`; }).join('')}</tbody></table>
+          <p class="ev-note">Synthetic runs. The go/no-go gate metric is not measured here.</p></section>
+          <section class="sv-card"><h4>Ambulances waiting to offload <small>seed 1</small></h4><svg viewBox="0 0 400 155" preserveAspectRatio="none" class="ev-line"><polyline points="${line(traces[0])}" class="n"/><polyline points="${line(traces[1])}" class="c"/></svg><div class="sv-legend"><span><i style="background:#b9a88f"></i>Nearest</span><span><i style="background:#235d48"></i>Coordinated</span><span style="margin-left:auto">08:00 → 12:00</span></div></section></div></div>`;
       el.querySelectorAll('[data-preset]').forEach(b => b.onclick = () => { cfg.preset = b.dataset.preset; runIt(); });
-      el.querySelectorAll('[data-seeds]').forEach(b => b.onclick = () => { cfg.seeds = Number(b.dataset.seeds); runIt(); });
-    }
+          }
     runIt();
     return { reset() { cfg = { preset: 'normal', seeds: 5 }; runIt(); }, destroy() { ro.disconnect(); } };
   };
