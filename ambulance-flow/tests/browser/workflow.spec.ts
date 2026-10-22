@@ -4,7 +4,7 @@ import { DEFAULT_CONFIG } from '../../lib/simulation';
 test('complete browser workflow: configure, approve, change capacity, evaluate, export, reload', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'A clearer view. A better flow.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Find the right hospital.' })).toBeVisible();
   await expect(page.getByText('Connecting to your workspace…')).toBeHidden();
   await page.screenshot({ path: 'outputs/overview-desktop.png', fullPage: true });
   await page.getByRole('button', { name: 'Create a scenario', exact: true }).click();
@@ -38,7 +38,7 @@ test('complete browser workflow: configure, approve, change capacity, evaluate, 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'Open navigation' }).click(); await page.getByRole('button', { name: 'Overview', exact: true }).click();
   await expect.poll(() => page.locator('.sidebar').evaluate(el => el.getBoundingClientRect().right)).toBeLessThanOrEqual(0);
-  await expect(page.getByRole('heading', { name: 'A clearer view. A better flow.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Find the right hospital.' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await page.screenshot({ path: 'outputs/overview-mobile.png', fullPage: true });
   expect(errors).toEqual([]);
