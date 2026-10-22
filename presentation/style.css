@@ -233,3 +233,27 @@
 /* Slide 6 on short screens */
 @media(min-width:801px) and (max-height:780px){.arch{gap:10px}.arch-node{padding:12px 18px;gap:4px}.arch-node small{font-size:13px}.arch-split{margin-top:6px}.arch-side{padding:7px 10px}.arch-side li{font-size:13px;padding:3px 8px}.arch-feed{gap:4px}.arch-feed>div{padding:6px 12px}.arch-grid{row-gap:8px}}
 .arch-backend .arch-split ul{grid-template-columns:1fr;margin:0;gap:5px}.arch-backend .arch-split li{text-align:left}
+
+
+/* Results chart: baseline vs our app */
+.rc{display:grid;gap:clamp(10px,2vh,18px);background:white;border:1px solid var(--line);border-radius:16px;padding:clamp(16px,2.6vh,28px) 32px}
+.rc-legend{display:flex;gap:26px;font-size:16px}
+.rc-legend i{display:inline-block;width:14px;height:14px;border-radius:4px;margin-right:8px;vertical-align:-2px}
+.rc .base{background:#b9a88f}.rc .ours{background:var(--green)}
+.rc-chart{display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(16px,3vw,48px);height:clamp(230px,calc(100dvh - 400px),460px)}
+.rc-group{display:grid;grid-template-rows:1fr auto auto;justify-items:center;gap:6px;border-bottom:0}
+.rc-bars{width:100%;display:flex;align-items:flex-end;justify-content:center;gap:10px;border-bottom:2px solid var(--line);height:100%}
+.rc-col{width:min(56px,40%);height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px}
+.rc-col i{width:100%;border-radius:8px 8px 0 0;display:block}
+.rc-col b{font-size:clamp(14px,2vh,18px);font-weight:600;white-space:nowrap}
+.rc-group>strong{font-size:clamp(15px,2.2vh,19px);margin-top:4px}
+.rc-delta{font-size:14px;font-weight:700;padding:3px 10px;border-radius:999px}
+.rc-delta.good{background:#e2f0e4;color:#2c6a45}.rc-delta.bad{background:#fbe9e2;color:#a5472f}.rc-delta.flat{background:#eef1ec;color:#6d7e73;font-weight:600}
+.rc-foot{font-size:13px;color:var(--muted);margin:0}
+@media(max-width:800px){.rc-chart{grid-template-columns:repeat(5,1fr);gap:8px;height:260px}.rc-col b{font-size:11px}}
+/* Results: keep it modest */
+.rc .ours{background:#8fb09c}.rc .base{background:#cfc4b3}
+.rc-chart{height:clamp(200px,calc(100dvh - 430px),340px)}
+.rc-col b{font-weight:500;color:var(--muted)}
+.rc-delta,.rc-delta.good,.rc-delta.bad,.rc-delta.flat{background:none;padding:0;font-weight:500;font-size:13px;color:var(--muted)}
+.rc-foot{font-size:15px;color:var(--ink)}

@@ -9,14 +9,17 @@
     if (!path) return `<div class="media-placeholder"><span class="media-symbol">${kind === 'video' ? '▷' : '▧'}</span><h2>${label}</h2><p>${duration}</p></div>`;
     return kind === 'video' ? `<video class="media" controls preload="metadata" src="${esc(path)}" poster="${esc(path.replace(/\.mp4$/, '-poster.jpg'))}" aria-label="${label}"></video>` : `<img class="media screenshot" src="${esc(path)}" alt="${label}">`;
   }
-  function gate() {
-    const v = D.validation;
-    const valid = v && Number.isFinite(v.baselineMinutes) && v.baselineMinutes > 0 && Number.isFinite(v.coordinatedMinutes) && v.coordinatedMinutes >= 0 && Number.isInteger(v.eligibilityViolations) && v.eligibilityViolations >= 0 && typeof v.source === 'string' && v.source.trim() && typeof v.metric === 'string' && v.metric.trim();
-    const reduction = valid ? (v.baselineMinutes - v.coordinatedMinutes) / v.baselineMinutes * 100 : null;
-    const pass = valid && reduction >= 15 && v.eligibilityViolations === 0;
-    const status = valid ? pass ? 'GO' : 'NO-GO' : 'NOT TESTED YET';
-    const conds = [['≥ 15%', 'less time each ambulance is unavailable per call', valid ? reduction >= 15 : null, valid ? `${reduction.toFixed(1)}%` : ''], ['0', 'patients sent to a hospital that cannot treat them', valid ? v.eligibilityViolations === 0 : null, valid ? `${v.eligibilityViolations}` : '']];
-    return `${heading('Go / no-go: what would prove it works?')}<div class="gate"><section><p class="gate-lead">Compared with sending each ambulance to the nearest hospital, on the same simulated shifts, we call it a <b>GO</b> only if both are true:</p>${conds.map(([n, t, ok, got]) => `<div class="gate-cond ${ok === null ? '' : ok ? 'ok' : 'bad'}"><strong>${n}</strong><span>${t}</span>${ok === null ? '' : `<em>${ok ? '✓' : '✗'} ${got}</em>`}</div>`).join('')}<p class="gate-foot">Both thresholds were set before running the test.</p></section><section class="verdict ${valid ? pass ? 'pass' : 'fail' : 'pending'}"><span class="eyebrow">RESULT</span><h2>${status}</h2>${valid ? `<p>${esc(v.metric)}<br>${v.baselineMinutes} → ${v.coordinatedMinutes} min</p><small>${esc(v.source)} · synthetic evidence</small>` : '<p>Slide 7 measures offload and travel time. It does not yet measure full-call unavailable time or eligibility violations.</p><p class="gate-next"><b>Next:</b> add both to the evaluation, then rerun.</p>'}</section></div>`;
+  // Results slide: baseline vs our app for each stat (evaluation-results.js).
+  const STATS = [['completed', 'Completed', '', 1], ['unfinished', 'Unfinished', '', -1], ['meanOffload', 'Mean offload', ' min', -1], ['meanTravel', 'Mean travel', ' min', -1], ['availability', 'Availability', '%', 1]];
+  function results() {
+    const R = window.EVAL_RESULTS.metrics;
+    const groups = STATS.map(([k, label, unit, dir]) => {
+      const m = R[k], max = Math.max(m.baseline, m.coordinated) * 1.15;
+      const sure = m.ciLow * m.ciHigh > 0, tone = !sure ? 'flat' : m.delta * dir > 0 ? 'good' : 'bad';
+      const bar = (v, cls) => `<div class="rc-col"><b>${v}${unit}</b><i class="${cls}" style="height:calc(${(v / max * 100).toFixed(1)}% - 30px)"></i></div>`;
+      return `<div class="rc-group"><div class="rc-bars">${bar(m.baseline, 'base')}${bar(m.coordinated, 'ours')}</div><strong>${label}</strong><span class="rc-delta ${tone}">${tone === 'flat' ? 'no clear change' : `${m.delta > 0 ? '+' : '−'}${Math.abs(m.delta)}${unit}`}</span></div>`;
+    }).join('');
+    return `${heading('Early simulation results')}<div class="rc"><div class="rc-legend"><span><i class="base"></i>Baseline: nearest hospital</span><span><i class="ours"></i>Our app</span></div><div class="rc-chart">${groups}</div><p class="rc-foot">We used a Python simulation with synthetic data (mean of 5 simulated shifts). Later on we will improve the data.</p></div>`;
   }
   const slides = {
     opening: () => `${heading('Every minute matters.')} ${media('video', D.media.openingVideo, 'Opening AI video', '1 minute · video to be added')}`,
@@ -33,7 +36,7 @@
       <div class="arch-feed"><b>↑</b><div><strong>Simulator</strong><small>Synthetic calls and hospital reports today</small></div><div class="arch-future"><strong>Operational feeds</strong><small>Future, through an adapter</small></div></div>
     </div></div>`,
     evaluation: () => `<div class="live-toolbar"><span class="muted">The real app · Evaluation page · matched seeds, nearest vs coordinated</span><div><span id="connection" role="status">Connecting…</span><button id="retry">Reload</button><button id="fullscreen">Full screen</button></div></div><div class="app-frame" id="app-frame"><iframe src="${esc(appLink('evaluation'))}" title="Routing evaluation" allow="fullscreen"></iframe><div id="offline" hidden><h2>Start the app to continue</h2><code>cd ambulance-flow && npm run dev</code><button id="reconnect">Retry connection</button></div></div>`,
-    gate,
+    results,
     limits: () => `${heading('The boundary of our proof')}<div class="limits"><section><h2>Shown in Our MVP</h2><ul class="proven"><li>End-to-end data flow</li><li>Dynamic state updates</li><li>Destination comparison</li><li>Quantitative evaluation</li></ul></section><section><h2>Not proven</h2><ul class="unproven"><li>Actual Ontario operational data</li><li>Clinical outcome improvement</li><li>Patient Distribution System / hospital integration</li></ul></section></div><p class="takeaway">Next: real operational data + EMS partners.</p>`,
   };
   let generation = 0;

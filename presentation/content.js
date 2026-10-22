@@ -14,7 +14,7 @@ window.DECK = {
     { id: 'product', number: '5', label: 'Product demo', time: '0:30' },
     { id: 'architecture', number: '6', label: 'Architecture', time: '1:30' },
     { id: 'evaluation', number: '7', label: 'Evaluation', time: '0:30' },
-    { id: 'gate', number: '7.5', label: 'Validation gate', time: '0:30' },
-    { id: 'limits', number: '8', label: 'Limits', time: '0:30' },
+    { id: 'results', number: '8', label: 'Results', time: '0:45' },
+    { id: 'limits', number: '9', label: 'Limits', time: '0:30' },
   ],
 };
