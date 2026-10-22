@@ -94,3 +94,9 @@ Unit tests cover determinism, conservation, lifecycle transitions, eligibility, 
 Only public names/addresses inform the base geography: [UHN directions](https://www.uhn.ca/corporate/Directions/), [Michael Garron](https://www.tehn.ca/), [Sunnybrook locations](https://sunnybrook.ca/locations/), and [Ontario hospital locations](https://www.ontario.ca/page/general-hospital-locations). Sites 6–10 are entirely virtual. All operational data is generated, and no identifiable patient data is collected.
 
 This is a planning and research demonstration, not an operational dispatch or clinical decision system. Real deployment would require validated models, authentic integrations, clinical/operational governance, and security review.
+
+### Patient journey demo
+
+Overview is an interactive patient journey: select a Toronto demo landmark or enter coordinates, choose Low / Moderate / Critical urgency, compare hospitals ranked by travel + offload time, select a destination, start the route, and confirm arrival. Arrival completes the trip and offers a new journey. The journey is stored only in this browser, separately from research runs and evaluations; refreshing restores it.
+
+The network uses a reproducible synthetic snapshot. Low and Moderate use general-care eligibility; Critical requires the simulator's specialist capability (not a statement about actual hospital services). The route animation runs at one second per simulated travel minute. Location entry supports the listed landmarks and coordinates within latitude 43.63–43.74 and longitude −79.49–−79.29; there is no live geocoding, GPS navigation, or hospital feed. Predicted total includes travel and offload, not time to treatment.
