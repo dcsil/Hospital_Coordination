@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_CONFIG, createRun, advance, incidentSchedule, choices, decide, forecast, inbound, metrics, observed, setCapacity, compare } from '../lib/simulation.ts';
+import { DEFAULT_CONFIG, createRun, advance, injectEmergency, incidentSchedule, choices, decide, forecast, inbound, metrics, patientTransports, observed, setCapacity, compare } from '../lib/simulation.ts';
 
 test('identical seeds generate identical external demand across policies', () => {
   const a = incidentSchedule({ ...DEFAULT_CONFIG, policy: 'nearest' });
@@ -22,7 +22,7 @@ test('ambulance conservation, finite metrics, and queue membership hold every mi
     assert.equal(r.ambulances.length, 20);
     for (const a of r.ambulances) { assert.equal(queued.includes(a.id), a.status === 'WAITING_TO_OFFLOAD'); assert.equal(active.includes(a.id), a.status === 'HANDOVER'); }
     for (const h of r.hospitals) assert.equal(inbound(r, h), r.ambulances.filter(a => a.status === 'EN_ROUTE' && a.destination === h.id).length);
-    const m = metrics(r); assert.equal(m.completed + m.unfinished, m.generated); assert(m.availability >= 0 && m.availability <= 100);
+    const m = metrics(r); assert.equal(m.completed + m.unfinished, m.pickedUp); assert(m.availability >= 0 && m.availability <= 100);
     for (const value of Object.values(m)) assert(Number.isFinite(value));
   }
   assert(metrics(r).completed > 0); assert(r.surgeInjected);
@@ -79,12 +79,12 @@ function queueFixture() {
   h.observations=[{time:0,queue:0,busy:0,capacity:1,releases:[]}];
   return {r,h};
 }
-test('arrival-time queue accounts for ETA order, capacity and baseline waiting allowance', () => {
+test('arrival-time queue accounts for ETA order and background readiness', () => {
   const {r,h}=queueFixture();
   r.ambulances.push({id:'inbound',destination:h.id,status:'EN_ROUTE',until:5});
   const early=forecast(r,h,10);
   assert.equal(early.projectedWait,13);
-  assert.equal(early.queueAdjustment,3); // baseline 28 includes 10 minutes ordinary waiting
+  assert.equal(early.queueAdjustment,13); // Background delay shifts both arrivals to handover readiness.
   assert.equal(forecast(r,h,1).inbound,0);
   assert.equal(forecast(r,h,30).queueAdjustment,0);
   r.ambulances.push({id:'second',destination:h.id,status:'EN_ROUTE',until:6});
@@ -99,7 +99,7 @@ test('reported residual handovers and completion events update forecasts', () =>
   const {r,h}=queueFixture();
   h.observations=[{time:0,queue:3,busy:1,capacity:1,releases:[2]}];
   const before=forecast(r,h,0);
-  assert.equal(before.projectedWait,56);
+  assert.equal(before.projectedWait,46); // Candidate spends 10 minutes in background preparation.
   h.observations.push({time:1,queue:0,busy:0,capacity:1,releases:[]});r.time=1;
   assert(forecast(r,h,0).offload<before.offload);
   const live=createRun(DEFAULT_CONFIG,'completion');
@@ -145,9 +145,46 @@ test('actual handover completion drains projected waiting work without rebuildin
 test('old snapshots, reduced capacity and caps produce finite interpretable estimates', () => {
   const {r,h}=queueFixture();
   h.observations=[{time:0,queue:0,busy:2,capacity:1,releases:[4,12]}];
-  assert.equal(forecast(r,h,0).projectedWait,12);
+  assert.equal(forecast(r,h,0).projectedWait,2);
   delete h.observations[0].releases;
-  assert.equal(forecast(r,h,0).projectedWait,9);
+  assert.equal(forecast(r,h,0).projectedWait,0);
   h.observations[0].queue=100;
   const p=forecast(r,h,0);assert.equal(p.offload,180);assert.equal(p.capped,true);
+});
+test('historical/live baseline drives simulated outcomes and known inbound queue predictions',()=>{
+ const r=createRun({...DEFAULT_CONFIG,manual:true,slots:1},'consistent');const h=r.hospitals[3];
+ r.incidents=[{id:'first',time:0,lat:h.lat,lng:h.lng,care:'general',scene:0,serviceFactor:1,assignedAt:0},{id:'candidate',time:0,lat:h.lat,lng:h.lng,care:'general',scene:0,serviceFactor:1,assignedAt:0}];
+ r.ambulances=[{id:'first',lat:h.lat,lng:h.lng,from:h,incidentId:'first',destination:h.id,status:'EN_ROUTE',until:1,routeStart:0},{id:'candidate',lat:h.lat,lng:h.lng,from:h,incidentId:'candidate',status:'AWAITING_DECISION',until:0,routeStart:0}];
+ const option=choices(r,'candidate').find(c=>c.hospitalId===h.id);assert.equal(option.offload,44);assert.equal(option.queueAdjustment,16);
+ decide(r,'candidate',h.id);advance(r,55);
+ assert.equal(r.incidents[0].offload,28);assert.equal(r.incidents[1].offload,option.offload);assert.equal(r.incidents[1].wait,16);
+});
+test('a newly injected case starts at pickup and moves directly toward hospital',()=>{
+ const r=createRun({...DEFAULT_CONFIG,manual:false,callsPerHour:1},'injected');r.incidents=[];
+ const incident=injectEmergency(r,{lat:43.718,lng:-79.32});advance(r,1);assert.equal(incident.assignedAt,1);assert.equal(incident.pickedUpAt,1);
+ const a=r.ambulances.find(a=>a.incidentId===incident.id);assert(a);const before={lat:a.lat,lng:a.lng};advance(r,1);
+ assert(a.lat!==before.lat||a.lng!==before.lng);advance(r,180);assert(incident.completedAt);assert(incident.offload>0);assert(r.events.some(e=>e.type==='handover'));
+});
+test('matched evaluations share frozen ED observations and report travel plus offload',()=>{
+ const evaluatedAt='2026-11-05T19:00:00Z';const liveEd={source:'ER Compass',readings:{},error:null,lastSuccessAt:evaluatedAt,checkedAt:evaluatedAt};
+ const result=compare({...DEFAULT_CONFIG,duration:60},[1,2,3],{liveEd,liveEdEvaluatedAt:evaluatedAt});
+ assert.deepEqual(result.inputs.liveEd,liveEd);assert.equal(result.inputs.liveEdEvaluatedAt,evaluatedAt);assert(result.summary.some(s=>s.metric==='meanTravelOffload'));
+ for(const seed of result.seeds){const rows=result.rows.filter(r=>r.seed===seed);assert.equal(rows[0].metrics.generated,rows[1].metrics.generated);}
+});
+test('live ED input changes generated background offload as well as predictions',()=>{
+ const r=createRun({...DEFAULT_CONFIG,manual:true,slots:1},'live-outcome');const h=r.hospitals[3];
+ const date='2026-11-05T19:00:00Z';r.liveEdEvaluatedAt=date;r.liveEd={source:'ER Compass',checkedAt:date,lastSuccessAt:date,error:null,readings:{sun:{hospitalId:'sun',externalHospital:h.name,metric:'posted_wait_minutes',waitMinutes:180,referenceMinutes:90,referenceCount:30,referenceFrom:'2026-11-01T00:00:00Z',referenceTo:'2026-11-04T00:00:00Z',collectedAt:date,observedAt:date,timestampBasis:'collection',publisherAsOf:null}}};
+ r.incidents=[{id:'live-case',time:0,lat:h.lat,lng:h.lng,care:'general',scene:0,serviceFactor:1,assignedAt:0}];r.ambulances=[{id:'unit',lat:h.lat,lng:h.lng,from:h,incidentId:'live-case',status:'AWAITING_DECISION',until:0,routeStart:0}];
+ const option=choices(r,'unit').find(c=>c.hospitalId===h.id);assert.equal(option.offload,88);decide(r,'unit',h.id);advance(r,100);assert.equal(r.incidents[0].offload,88);assert.equal(r.incidents[0].wait,0);
+});
+test('pickup-only cases skip dispatch and scene stages; transport views exclude idle vehicles',()=>{
+ const r=createRun({...DEFAULT_CONFIG,manual:true},'pickup-only');advance(r,15);
+ const picked=r.incidents.filter(i=>i.pickedUpAt!==undefined);assert(picked.length>0);
+ for(const i of picked){assert.equal(i.assignedAt,i.pickedUpAt);const a=r.ambulances.find(a=>a.incidentId===i.id);assert.equal(a.status,'AWAITING_DECISION');assert.equal(a.lat,i.lat);assert.equal(a.lng,i.lng);}
+ assert(!r.events.some(e=>['dispatch','on_scene'].includes(e.type)));assert.equal(patientTransports(r).length,picked.length);
+ assert(!patientTransports(r).some(a=>['AVAILABLE','ASSIGNED','ON_SCENE'].includes(a.status)));
+});
+test('unfinished transport counts exclude cases not yet picked up',()=>{
+ const r=createRun({...DEFAULT_CONFIG,fleet:5,manual:true,callsPerHour:90},'cohort');advance(r,30);
+ const m=metrics(r);assert(m.generated>m.pickedUp);assert.equal(m.pickedUp,5);assert.equal(m.unfinished,5);assert.equal(m.completed,0);
 });

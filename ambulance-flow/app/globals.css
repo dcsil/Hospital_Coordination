@@ -87,3 +87,24 @@ main[data-page="operations"] .table-scroll { min-width: 0; max-width: 100%; }
 }
 
 .prediction-breakdown{font-size:10px;white-space:normal;margin:12px 0;color:var(--ink)}.prediction-breakdown summary{cursor:pointer;color:var(--green);line-height:1.6}.prediction-breakdown dl{margin:10px 0;min-width:210px}.prediction-breakdown dl>div{display:flex;justify-content:space-between;gap:14px;padding:5px 0;border-bottom:1px solid var(--line)}.prediction-breakdown dd{margin:0;white-space:nowrap}.prediction-breakdown p{font-size:9px;max-width:360px;color:var(--muted)}
+
+.ed-status{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:10px;margin-top:9px;white-space:normal}.ed-source{margin:12px 0}.ed-source a{text-decoration:underline}
+
+.metric>.unavailable-value{font-size:20px;letter-spacing:0}.source-panel{padding:28px;max-width:900px}.source-panel p{margin-top:20px}.source-panel a,.patient-controls .form-note a{text-decoration:underline}.estimate-comparison{margin:18px 0;padding:16px;border:1px solid var(--line);border-radius:8px;background:#f7faf5}.estimate-comparison small{display:block;margin-top:8px;line-height:1.6;color:var(--muted)}
+
+.journey-steps{display:flex;flex-wrap:wrap;gap:8px 16px;list-style:none;padding:0;margin:0 0 26px;font-size:12px;color:var(--muted)}.journey-steps li[aria-current="step"]{color:var(--green);font-weight:700}.pickup-selection{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}.pickup-selection .text-button{font-size:13px}
+
+.overview-simulation-settings{margin-top:24px}
+
+.patient-total strong.unavailable-total{font-size:28px;overflow-wrap:anywhere}
+
+.prediction-breakdown{font-size:14px;margin:12px 0 18px}
+.prediction-breakdown>summary{font-size:20px;font-weight:600;line-height:1.4;padding:14px 16px;border:1px solid #d5e3d0;border-radius:8px;background:#f3f7ef}
+.prediction-breakdown>summary:hover{background:#e9f1e3}
+.prediction-breakdown dl{margin:14px 0;min-width:0}
+.prediction-breakdown dl>div{padding:8px 0}
+.prediction-breakdown p{font-size:12px;max-width:none}
+.prediction-source{margin-top:14px;color:var(--muted)}
+.prediction-source>summary{font-size:13px;padding:6px 0;font-weight:500}
+.ed-status{font-size:12px}
+@media(max-width:650px){.prediction-breakdown>summary{font-size:18px;padding:12px 14px}}

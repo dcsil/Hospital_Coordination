@@ -1,58 +1,51 @@
-import { test, expect } from '@playwright/test';
-import { journeyNetwork, resolveLocation } from '../../lib/patient-journey';
-
-test('location bounds, ranking, and critical eligibility', () => {
-  expect(resolveLocation('unknown address')).toBeNull();
-  expect(resolveLocation('0, 0')).toBeNull();
-  expect(resolveLocation('43.65, -79.38')).toEqual({ lat: 43.65, lng: -79.38 });
-  const origin = resolveLocation('Union Station')!;
-  for (const urgency of ['low', 'moderate', 'critical'] as const) {
-    const { ranked, run } = journeyNetwork(origin, urgency);
-    expect(ranked.length).toBeGreaterThan(1);
-    expect(ranked.map(c => c.total)).toEqual(ranked.map(c => c.total).sort((a, b) => a - b));
-    for (const c of ranked) {
-      expect(c.total).toBeCloseTo(c.travel + c.offload, 1);
-      if (urgency === 'critical') expect(run.hospitals.find(h => h.id === c.hospitalId)?.capabilities).toContain('specialist');
-    }
-  }
+import {test,expect} from '@playwright/test';
+import {mockSources} from './data-fixtures';
+test('location and destination steps remain explicit with a prefilled saved search',async({page})=>{
+ const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await mockSources(page);
+ await page.goto('/');await expect(page.getByLabel('Current location')).toBeInViewport();await expect(page.getByRole('button',{name:'Find hospitals'})).toBeDisabled();
+ await page.getByLabel('Current location').fill('Unknown');await page.getByRole('button',{name:'Find hospitals'}).click();await expect(page.getByRole('alert')).toContainText('Choose a listed Toronto location');
+ await page.getByRole('button',{name:'Union Station',exact:true}).click();await page.getByRole('button',{name:'Find hospitals'}).click();
+ await expect(page.locator('.patient-option')).toHaveCount(5);await expect(page.getByText('Lowest travel + offload first.',{exact:true})).toBeVisible();
+ await page.locator('.patient-option').nth(1).getByRole('radio').check();
+ const detail=page.locator('.prediction-breakdown').first();await detail.locator(':scope>summary').click();await expect(detail).toContainText('Historical offload');await expect(detail).toContainText('Ambulance queue');await expect(detail).toContainText('Unavailable');await expect(detail).not.toContainText('Additional queue delay');
+ await expect(page.getByRole('link',{name:/Open directions to/})).toHaveAttribute('href',/google.com\/maps\/dir/);
+ await expect(page.getByRole('button',{name:/Start route|Arrived at hospital/})).toHaveCount(0);
+ await page.screenshot({path:'outputs/hospital-estimates-desktop.png',fullPage:true});
+ await page.reload();await expect(page.getByRole('heading',{name:'1. Select pickup location'})).toBeVisible();await expect(page.getByLabel('Current location')).toHaveValue('Union Station');await page.getByRole('button',{name:'Find hospitals'}).click();await expect(page.getByRole('heading',{name:'2. Select destination'})).toBeVisible();
+ await page.setViewportSize({width:390,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.screenshot({path:'outputs/hospital-estimates-mobile.png',fullPage:true});expect(errors).toEqual([]);
 });
-
-test('patient can choose an alternative, reload route, arrive, and begin again', async ({ page }) => {
-  const errors: string[] = []; page.on('pageerror', e => errors.push(e.message));
-  await page.goto('/');
-  await expect(page.getByRole('button', { name: 'Find hospitals' })).toBeDisabled();
-  await page.getByLabel('Current location').fill('Unknown location');
-  await page.getByRole('radio', { name: /Moderate/ }).check();
-  await page.getByRole('button', { name: 'Find hospitals' }).click();
-  await expect(page.getByRole('alert')).toContainText('Choose a listed Toronto location');
-  await page.getByRole('button', { name: 'Union Station', exact: true }).click();
-  await page.getByRole('button', { name: 'Find hospitals' }).click();
-  await expect(page.locator('.patient-option')).toHaveCount(5);
-  const explanation = page.locator('.prediction-breakdown').first();
-  await explanation.locator('summary').click();
-  await expect(explanation).toContainText('Historical offload');
-  await expect(explanation).toContainText('Additional queue delay');
-  await expect(explanation).toContainText('Previous model offload');
-  await expect(explanation).toContainText('Total expected time');
-  await page.locator('.patient-option').nth(1).getByRole('radio').check();
-  const destination = await page.locator('.patient-option').nth(1).locator('strong').innerText();
-  await page.screenshot({ path: 'outputs/patient-choices-desktop.png', fullPage: true });
-  await page.getByRole('button', { name: /Start route to/ }).click();
-  await page.reload();
-  await expect(page.getByRole('heading', { name: 'On the way to hospital' })).toBeVisible();
-  await expect(page.locator('.patient-destination h3')).toHaveText(destination.replace(/^\d+\. /, ''));
-  await page.getByRole('button', { name: 'Arrived at hospital' }).click();
-  await expect(page.getByRole('heading', { name: 'Trip complete' })).toBeVisible();
-  await page.reload();
-  await expect(page.getByRole('heading', { name: 'Trip complete' })).toBeVisible();
-  await page.getByRole('button', { name: 'New patient journey' }).click();
-  await expect(page.getByLabel('Current location')).toHaveValue('');
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByRole('button', { name: 'Union Station', exact: true }).click();
-  await page.getByRole('radio', { name: /Critical/ }).check();
-  await page.getByRole('button', { name: 'Find hospitals' }).click();
-  await expect(page.locator('.patient-option')).toHaveCount(3);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await page.screenshot({ path: 'outputs/patient-choices-mobile.png', fullPage: true });
-  expect(errors).toEqual([]);
+test('failed routing and missing ED readings leave travel unavailable and historical estimates usable',async({page})=>{
+ await mockSources(page,{roadsAvailable:false,live:false});await page.goto('/');await page.getByRole('button',{name:'Union Station',exact:true}).click();await page.getByRole('button',{name:'Find hospitals'}).click();
+ await expect(page.getByText('Road travel unavailable. Ranking uses offload estimates only.',{exact:true})).toBeVisible();await expect(page.locator('.patient-option')).toHaveCount(5);
+ await expect(page.locator('.ed-status').getByText('No live ED data',{exact:true})).toHaveCount(5);
+ await expect(page.locator('.patient-option').first()).toContainText('Sunnybrook');await expect(page.locator('.patient-option').first()).toContainText('28');await expect(page.locator('.patient-option').first()).toContainText('Travel unavailable');
+ await expect(page.locator('.estimate-comparison')).toHaveCount(0);
+});
+test('a chosen location launches an emergency in the working simulation',async({page})=>{
+ await mockSources(page);await page.goto('/');await page.getByRole('button',{name:'Union Station',exact:true}).click();await page.getByRole('button',{name:'Find hospitals'}).click();
+ await page.getByRole('button',{name:'Simulate pickup at this location'}).click();
+ await expect(page.getByRole('heading',{name:'Live operations',exact:true})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'Patient transports',exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Pause',exact:true}).click();
+ const id=await page.evaluate(()=>localStorage.getItem('kinetic-run'));
+ const run=await(await page.request.get(`/api/runs/${id}/state`)).json();
+ const emergency=run.incidents.find((i:{id:string})=>i.id.startsWith('EMERGENCY-'));expect(emergency.lat).toBe(43.6453);expect(emergency.lng).toBe(-79.3806);
+});
+test('Google Maps handoff keeps arrival confirmation in the app and survives reload',async({page,context})=>{
+ await mockSources(page);
+ await context.route('https://www.google.com/maps/**',route=>route.fulfill({contentType:'text/html',body:'<title>Directions test</title>'}));
+ await page.goto('/');await expect(page.getByRole('heading',{name:'1. Select pickup location'})).toBeVisible();
+ await page.getByRole('button',{name:'Union Station',exact:true}).click();await page.getByRole('button',{name:'Find hospitals'}).click();
+ await expect(page.getByRole('heading',{name:'2. Select destination'})).toBeVisible();await expect(page.getByRole('button',{name:'Change pickup location'})).toBeVisible();
+ await page.locator('.patient-option').nth(1).getByRole('radio').check();
+ const selected=(await page.locator('.patient-option').nth(1).locator('strong').innerText()).replace(/^\d+\. /,'');
+ const link=page.getByRole('link',{name:`Open directions to ${selected}`});const href=await link.getAttribute('href');
+ const [maps]=await Promise.all([page.waitForEvent('popup'),link.click()]);await maps.waitForLoadState();expect(maps.url()).toBe(href);await maps.close();
+ await expect(page.getByRole('heading',{name:'3. Confirm arrival'})).toBeVisible();await expect(page.locator('.patient-destination h3')).toHaveText(selected);
+ const total=await page.locator('.patient-total strong').innerText();await expect(page.getByRole('button',{name:'Arrived at hospital'})).toBeVisible();
+ await page.reload();await expect(page.getByRole('heading',{name:'3. Confirm arrival'})).toBeVisible();await expect(page.locator('.patient-total strong')).toHaveText(total);await expect(page.locator('.patient-destination h3')).toHaveText(selected);
+ await page.getByRole('button',{name:'Arrived at hospital'}).click();await expect(page.getByRole('heading',{name:'Arrival confirmed',exact:true})).toBeVisible();
+ await page.reload();await expect(page.getByRole('heading',{name:'Arrival confirmed',exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'New journey'}).click();await expect(page.getByRole('heading',{name:'1. Select pickup location'})).toBeVisible();await expect(page.getByLabel('Current location')).toHaveValue('');
 });

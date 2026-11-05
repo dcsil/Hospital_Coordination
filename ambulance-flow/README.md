@@ -1,101 +1,148 @@
-# Kinetic · Ambulance Flow
+# Kinetic · Ambulance emergency simulation
 
-A complete research simulation workspace for ambulance offload coordination. Built for Team Kinetic's CSC491 project from the shared AI Ambulance Flow Platform design.
+Simulate patient pickup, hospital transport and handover, then compare
+**nearest eligible hospital** with **coordinated travel + offload** routing.
+Historical hospital offload baselines and available live ED readings describe
+hospital background conditions; simulated cases determine extra queue delay.
 
-## Run locally
-
-Requires Node.js 22.13+ and npm. No API keys, hospital feeds, or external database accounts are required for local use.
+## Run and test
 
 ```sh
-npm ci
-npm run build
-node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_aspiring_jasper_sitwell.sql
-npm run dev -- --hostname 127.0.0.1
+cd ambulance-flow
+npm run dev
+# http://127.0.0.1:5173
 ```
 
-Open http://127.0.0.1:5173. Apply the initial migration **once** for a new local database. Data survives server restarts in the ignored `.wrangler/state/` directory. Hosting uses its own separately provisioned D1 database; local demo/test records are never uploaded.
-
-## What works
-
-- **Overview:** geographic network schematic, measured KPIs, scenario presets, recent runs.
-- **Scenario builder:** saved configurations, 5–50 ambulances, 2–10 hospitals, 1–12 hour horizons, configurable arrivals, capacity, handover duration, reporting lag, seeds, policies, and dispatcher approval.
-- **Live operations:** play/pause/stop, speed control, persisted clock, selectable map markers, estimated routes, fleet filtering, event history, and manual destination confirmation.
-- **Hospital network:** queues, inbound commitments, active handovers, P90 offload, completion history, and capacity changes including closure to new handovers.
-- **Evaluation:** matched baseline/coordinated experiments over 3–10 distinct seeds, paired uncertainty intervals, per-seed outcomes, saved results, CSV and full JSON export.
-
-Try the normal scenario, enable dispatcher approval, approve a destination, reduce Toronto General's slots, inspect forecasts, and run a three-seed comparison. The surge preset increases arrivals and reduces the first hospital to one slot at one quarter of the horizon.
-
-## Architecture
-
-The design's recommended Python/Supabase stack was adapted to a self-contained TypeScript implementation for local and private Sites hosting:
-
-- React 19 / TypeScript, Next-compatible Vinext, responsive CSS, Lucide icons.
-- Server-side API routes in `app/api/[...path]/route.ts` on Cloudflare Workers.
-- Pure deterministic simulation and policy logic in `lib/simulation.ts`.
-- D1 SQLite storage with Drizzle schema/migrations for scenarios, runs, event journals, and evaluations.
-- Optimistic revision checks and transactional snapshot/event writes prevent lost updates and journal divergence.
-- The browser requests clock advancement while Play is enabled. Closing the tab stops advancement; opening a saved run starts with Play disabled. All six views share one run snapshot. This is request-driven simulation, not an unattended background worker or push subscription service.
-
-Hospital state and ambulance positions are embedded in the run snapshot for atomic updates; the event journal is stored separately. This avoids a distributed synchronization layer in the first release. Hosted access is owner-private through Sites. This version is one research workspace, not a multi-tenant hospital system; changing its audience would share that workspace's saved simulations.
-
-## Simulation and evaluation assumptions
-
-- One-minute discrete time steps; seeded exponentially distributed call arrivals. Demand is generated before a run, independently of destination policy.
-- Lifecycle: AVAILABLE → ASSIGNED → ON_SCENE → AWAITING_DECISION → EN_ROUTE → WAITING_TO_OFFLOAD → HANDOVER → AVAILABLE.
-- A confirmed destination immediately adds inbound demand. Only arrivals enter the hospital queue. Queues use FIFO handover slots; reducing capacity does not cancel handovers already underway.
-- Synthetic general/specialist capability rules filter eligibility. They do not describe real hospital clinical services.
-- The predictor sees delayed queue/capacity observations and known commitments, never future incidents or the hidden current queue. It projects FIFO handover slots to arrival time using reported release times, configured service means and inbound ETAs. Historical offload baselines and a separate ED congestion proxy are added with an allowance to avoid counting ordinary historical queue delay twice. See [prediction data, formula and assumptions](data/README.md).
-- V1 is an explainable analytic predictor. A trained XGBoost model and LLM assistant were future versions in the source design and are not represented as implemented or validated here.
-- Displayed forecast ranges are heuristic sensitivity bands, **not calibrated confidence intervals**. Forecasts omit unknown future arrivals and are capped at 180 minutes by default for offload estimates (configurable via `config.prediction`).
-- Travel is distance × 1.35 at an assumed 33 km/h, with a 3-minute minimum. Map roads and route lines are schematic, not navigable road geometry. Coordinates are approximate.
-- Offload = queue wait + handover. Destination travel excludes the initial response leg. Availability is available fleet-minutes / total fleet-minutes.
-- Offload and travel summaries include completed cases only. Every result includes unfinished and completed counts to expose censoring. An empty completed-case sample yields 0 in exported metrics; interpret it as no observations, not zero delay.
-- Comparisons use common incident schedules and per-case service factors for each policy. They ignore interactive manual edits and rerun the saved scenario with automated policy decisions. Results show paired Student-t 95% intervals on coordinated-minus-baseline differences. These small-sample synthetic intervals do not establish real-world benefit.
-- Initial queues are empty; no warmup period is discarded. The simulation stops at the horizon and reports all unfinished cases rather than silently draining them.
-
-## API
-
-All paths begin with `/api`. JSON writes validate bounds with Zod; browser cross-origin writes are rejected.
-
-| Method | Path | Purpose |
-| --- | --- | --- |
-| GET / POST | `/scenarios` | List or save a scenario configuration |
-| GET | `/scenarios/:id` | Read a saved scenario |
-| GET / POST | `/runs` | List runs or create one using `{scenarioId}` |
-| GET | `/runs/:id/state` | Current persisted snapshot and revision |
-| POST | `/runs/:id/control` | `{revision, action}`; advance, pause, resume, stop, policy, manual, capacity |
-| POST | `/runs/:id/decisions` | `{revision, ambulanceId, hospitalId}`; confirm an eligible destination |
-| GET | `/runs/:id/choices?ambulanceId=...` | Ranked destination estimates |
-| GET | `/runs/:id/predictions` | Hospital forecasts at three horizons |
-| GET | `/runs/:id/events` | Complete ordered event journal |
-| GET | `/runs/:id/metrics` | Current measurements |
-| GET | `/runs/:id/export` | Snapshot, complete history, metrics, methodology |
-| POST | `/runs/compare` | `{config, seeds}`; persist a matched policy comparison |
-| GET | `/evaluations` | Saved comparison results |
-| GET | `/health` | Service configuration check |
-
-Example advance: `{ "revision": 0, "action": "advance", "minutes": 15 }`. Concurrent stale writes return HTTP 409; fetch state before retrying. Ended runs are immutable. Start another run from the same scenario to repeat an experiment.
-
-## Verification
+Use the repository installation workflow (`npm run install:ci`) if dependencies
+are missing. Existing local D1 tables are used for saved scenarios, runs, events
+and evaluations; no schema changes are introduced by this update.
 
 ```sh
 npm test
 npm run typecheck
 npm run build
-# With the local server running and Google Chrome installed:
+# With npm run dev running in a separate terminal:
 npm run test:e2e
 ```
 
-Unit tests cover determinism, conservation, lifecycle transitions, eligibility, stale observations, closures, pause/stop behavior, and matched evaluation. Browser/API acceptance tests cover configuration, manual decisions, capacity edits, forecasts, comparison/export, persistence, mobile layout, input validation, cross-origin rejection, revision races, and event completeness. Screenshots and traces are ignored under `outputs/`.
+## Demo workflow
 
-## Data provenance
+1. Choose a location in Overview and click **Simulate pickup at this location** to start patient transport there, or open **Scenario builder**, choose pickup demand, maximum concurrent transports, hospital slots, handover
+   duration, reporting delay and seed, then Start simulation.
+2. **Live operations** shows only ambulances carrying patients, from pickup through handover. Idle vehicles and pre-pickup cases are excluded from the map, activity table and event stream. New cases begin at pickup; there is no response or scene-time stage. Play, pause, step or change speed.
+3. Use **Add pickup** to schedule an additional picked-up patient for the next simulation
+   minute. Seeded pickup opportunities continue at the configured rate. The internal transport-capacity pool is not displayed; an opportunity that cannot yet be assigned is not counted as a picked-up patient.
+4. Enable dispatcher approval to inspect estimated travel, hospital offload
+   components and total time, then confirm a destination. Otherwise the configured
+   policy decides automatically.
+5. **Hospital network** shows simulated queues, slots, completions and source-based
+   offload components. Capacity edits change the simulated hospital.
+6. **Evaluation** reruns both policies over identical emergencies for each selected
+   seed and one frozen ED snapshot. It reports mean offload, P90, travel + offload,
+   travel, picked-up, completed and unfinished transport counts, with paired intervals.
+   Interactive emergency injections and capacity edits are not replayed: evaluation
+   reruns the saved configuration, as explicitly labelled in the dashboard.
 
-Only public names/addresses inform the base geography: [UHN directions](https://www.uhn.ca/corporate/Directions/), [Michael Garron](https://www.tehn.ca/), [Sunnybrook locations](https://sunnybrook.ca/locations/), and [Ontario hospital locations](https://www.ontario.ca/page/general-hospital-locations). Sites 6–10 are entirely virtual. All operational data is generated, and no identifiable patient data is collected.
+Overview uses the **active run’s dynamic queue model** at each hospital’s travel-time arrival horizon, combined with historical/live inputs. Play, pause, speed and step controls appear on Overview too. As the simulation clock advances, inbound patients arrive and handovers finish, queue adjustments and rankings are recomputed. Paused runs can advance five minutes with Step. If travel is unavailable, queue projection explicitly assumes immediate arrival.
 
-This is a planning and research demonstration, not an operational dispatch or clinical decision system. Real deployment would require validated models, authentic integrations, clinical/operational governance, and security review.
+Without an active run, Overview clearly labels its estimates as historical/live background only. Select a location and **Simulate pickup at this location** to start or join a run. Overview is a hypothetical new patient forecast; destination inspection in Live operations also applies the selected case’s synthetic capability constraints.
 
-### Patient journey demo
+Overview navigation is explicit: **1. Select pickup location → 2. Select destination → 3. Confirm arrival**. Location selection is the first main panel. A saved search prefills the location field without automatically skipping Step 1. Opening the selected destination in Google Maps (a separate tab) saves the destination and departure estimates, then leaves **Arrived at hospital** confirmation in the app. This state and manual arrival confirmation persist across reloads. **New journey** returns to location selection. The confirmation is browser journey state and does not mark a simulated handover complete.
 
-Overview is an interactive patient journey: select a Toronto demo landmark or enter coordinates, choose Low / Moderate / Critical urgency, compare hospitals ranked by travel + offload time, select a destination, start the route, and confirm arrival. Arrival completes the trip and offers a new journey. The journey is stored only in this browser, separately from research runs and evaluations; refreshing restores it.
+## Travel, as currently authorized
 
-The network uses a reproducible synthetic snapshot. Low and Moderate use general-care eligibility; Critical requires the simulator's specialist capability (not a statement about actual hospital services). The route animation runs at one second per simulated travel minute. Location entry supports the listed landmarks and coordinates within latitude 43.63–43.74 and longitude −79.49–−79.29; there is no live geocoding, GPS navigation, or hospital feed. Predicted total includes travel and offload, not time to treatment.
+Travel uses **estimated simulation times**, not Google Maps results:
+
+```text
+minutes = max(3, ceil(straight-line km × 1.35 / 0.55))
+```
+
+The same estimator drives pickup-to-hospital recommendations, ambulance movement timing and both evaluation policies. Pre-pickup travel and scene time are not part of the tracked simulation. Travel source is included in run/evaluation metadata and the
+UI. Coordinates and schematic paths are approximate; there is no live traffic or
+ambulance-priority routing. The previous OSRM integration has been removed.
+
+The user approved estimated travel for now. Google Routes remains a future
+integration, requiring a server-side key, billing-enabled project and Routes API.
+No key is required or exposed by this version. Do not describe these estimates
+as Google travel.
+
+## Offload model and simulated outcomes
+
+```text
+source baseline = historical offload + comparable live ED adjustment
+expected base   = max(configured mean slot service, source baseline)
+background     = expected base − configured mean slot service
+
+predicted offload = expected base + simulated projected queue delay
+actual simulated offload = background + realized queue delay + case slot service
+```
+
+The historical baseline already includes normal offload waiting. Rather than
+adding an independent historical queue allowance, we explicitly represent its
+non-slot portion as a background preparation delay. A case joins the hospital's
+waiting list on arrival and becomes ready for a handover slot after that delay.
+Among ready cases, FIFO uses readiness and arrival order. Active handovers occupy
+configured concurrent slots. Case slot service is the hospital mean multiplied
+by the seeded per-case factor (0.65–1.35), rounded to whole simulation minutes.
+
+The predictor schedules reported handover releases, waiting cases' readiness
+and committed inbound ETAs on the same slot model. It evaluates the candidate
+at arrival plus background readiness, using mean service, and excludes the
+candidate from its own inbound count. Additional queue delay is added in full
+(default `queueWeight=1`). It no longer hides congestion behind the earlier
+`baseline − service` subtraction. A service-floor component is displayed if the
+configured handover mean exceeds the sourced baseline.
+
+**This decomposition is a demo assumption, not a validated clinical process.**
+It makes the predictor and generated outcomes consistent, addressing the earlier
+mismatch where routing used 28–60 minute historical baselines while outcomes
+were generated solely from 15–23 minute handovers. This does not ensure that
+coordinated routing wins every metric or establish real-world forecast accuracy.
+
+Zero reported capacity makes a destination ineligible and uses a capped sentinel;
+active handovers still finish. Queue/capacity/readiness/release observations obey
+the scenario's reporting delay; the predictor does not read hidden current queues
+or future unannounced cases. Forecast sensitivity ranges are heuristic, not
+calibrated confidence intervals. Output cap defaults to 180 minutes.
+
+## Historical/live inputs and fair evaluation
+
+- Approximate whole-minute Toronto 2022–2023 offload baselines are stored locally.
+  Missing sites use the documented 13-hospital median, labelled fallback.
+- ER Compass posted ED waits are compared only with the same hospital's same
+  metric history. Default live sensitivity is 60 minutes per unit relative
+  deviation, bounded to ±100%. Freshness is full through 30 real minutes, then
+  fades to zero at 180. Missing/invalid data gives no live adjustment.
+- The server cache refreshes every 15 real minutes while used. API failures retain
+  valid cached readings or fall back to history. Live freshness uses wall time;
+  simulated emergency timing uses the scenario clock.
+- The old static monthly ED congestion multiplier is not added. Monthly Ontario
+  ED metrics remain separate historical context and never become ambulance queues.
+- Active runs attach the latest cached ED snapshot on state/control requests.
+  Evaluation captures a snapshot once and applies the same observation and
+  evaluation time to every policy and seed; it is included in exported inputs.
+- Clinical capabilities, demand, slots, queues, movements and completion outcomes
+  are simulated. Synthetic capability rules do not describe real hospitals.
+- Completed-case averages exclude unfinished transports. Unfinished now means picked up but not yet handed over; patients awaiting pickup are excluded. Fleet availability and response-stage metrics are not displayed or compared. Inspect censoring counts;
+  short horizons can bias apparent performance. Simulated benefit is not
+  independently verified prediction accuracy.
+
+Source detail: [historical cleaning](data/README.md), [live feed](data/LIVE_ED.md).
+Model parameters are in `DEFAULT_PREDICTION` and scenario `config.prediction`.
+New runs/evaluations use `modelVersion: 3`; incompatible old runs/evaluations
+remain in the database but are not mixed into this model's results.
+
+## API
+
+- `/api/scenarios`, `/api/runs`, `/api/runs/:id/state`, `/control`, `/decisions`,
+  `/predictions`, `/choices`, `/events`, `/export`, `/api/runs/compare` and
+  `/api/evaluations` are restored.
+- POST `/api/runs/:id/control` accepts `action: emergency` (schedule a pickup) with the current revision, optionally with both `lat` and `lng` for a supplied Toronto location.
+- POST control `action: step` advances the clock even while paused and preserves the paused state.
+- `/api/ed-data` exposes a public-data snapshot with no credentials.
+- `/api/hospitals` returns source-only hospital estimates without simulated queues.
+- `/api/travel?lat=...&lng=...` returns labelled temporary travel estimates.
+- `/api/health` reports simulation mode and the estimated travel source.
+
+Revision checks and transactional event writes remain in place. Real operational
+hospital queues or ambulance offload observations are not connected.

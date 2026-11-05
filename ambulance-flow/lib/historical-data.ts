@@ -1,3 +1,4 @@
+import { LIVE_ED_DEFAULTS } from './live-ed.ts';
 import data from '../data/hospital-history.json' with { type: 'json' };
 
 export const HISTORICAL_DATA = data;
@@ -13,6 +14,7 @@ export function hospitalHistory(id: string) {
 }
 // Demo assumptions, not fitted coefficients. Override per run via config.prediction.
 export const DEFAULT_PREDICTION = {
+  ...LIVE_ED_DEFAULTS,
   congestionWeight: 0.1,
   queueWeight: 1,
   maxMinutes: 180,

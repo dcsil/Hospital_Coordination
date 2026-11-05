@@ -17,6 +17,7 @@ test('complete browser workflow: configure, approve, change capacity, evaluate, 
   await page.getByRole('button', { name: 'Review next', exact: true }).waitFor();
   await page.getByRole('button', { name: 'Pause', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeEnabled();
+  await page.getByRole('button',{name:'Add pickup',exact:true}).click();
   await page.getByRole('button', { name: 'Review next', exact: true }).click();
   await page.getByRole('button', { name: 'Confirm', exact: true }).filter({ visible: true }).first().click();
   await expect(page.getByText('Committed to:', { exact: true })).toBeVisible();
@@ -28,7 +29,7 @@ test('complete browser workflow: configure, approve, change capacity, evaluate, 
   await page.getByLabel('Distinct seeds').selectOption('3');
   await page.getByRole('button', { name: 'Run comparison', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Strategy comparison', exact: true })).toBeVisible();
-  await expect(page.locator('tbody tr')).toHaveCount(6);
+  await expect(page.locator('tbody tr')).toHaveCount(6);await expect(page.getByRole('heading',{name:'Travel + offload',exact:true})).toBeVisible();
   const file = page.waitForEvent('download'); await page.getByRole('button', { name: 'Download CSV' }).click(); expect((await file).suggestedFilename()).toBe('kinetic-evaluation.csv');
   await page.screenshot({ path: 'outputs/evaluation-desktop.png', fullPage: true });
   await page.reload(); await expect(page.getByText('Connecting to your workspace…')).toBeHidden();
