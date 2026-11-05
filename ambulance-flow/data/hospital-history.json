@@ -1,0 +1,235 @@
+{
+  "sources": {
+    "offload": "https://www.toronto.ca/legdocs/mmis/2024/cc/bgrd/backgroundfile-247763.pdf",
+    "ed": "https://raw.githubusercontent.com/Nshipyard/ontario-er-waits/main/public/data/er_waits_ranked.csv"
+  },
+  "sourceSha256": {
+    "ontario-ed-source.csv": "7523e7a68d4923c56990afd3ca5c2826be4dfb82287b5dea37495b60087aef12",
+    "toronto-offload-source.pdf": "b1c01f63b55a2e683d8b98957d46ba3f9567e47f239ca5fe6e61684210aab911"
+  },
+  "offloadPeriod": "2022\u20132023",
+  "offloadApproximate": true,
+  "edMonth": "2026-08",
+  "edPeerMedianAssessmentMinutes": 108.0,
+  "cleanRows": 8115,
+  "droppedRows": 0,
+  "fallbackOffloadMinutes": 43,
+  "hospitals": {
+    "tgh": {
+      "offloadMinutes": 58,
+      "edSourceId": "1359",
+      "edHospital": "University Health Network-General Site",
+      "edMonth": "2026-08",
+      "edIndicators": [
+        {
+          "month": "2026-08",
+          "indicator": "first_assessment",
+          "snum": "1359",
+          "hospital": "University Health Network-General Site",
+          "meanMinutes": 138.0,
+          "p90Minutes": 282.0,
+          "cases": 5100
+        },
+        {
+          "month": "2026-08",
+          "indicator": "low_urgency_stay",
+          "snum": "1359",
+          "hospital": "University Health Network-General Site",
+          "meanMinutes": 282.0,
+          "p90Minutes": 498.0,
+          "cases": 846
+        },
+        {
+          "month": "2026-08",
+          "indicator": "high_urgency_stay",
+          "snum": "1359",
+          "hospital": "University Health Network-General Site",
+          "meanMinutes": 360.0,
+          "p90Minutes": 600.0,
+          "cases": 3125
+        },
+        {
+          "month": "2026-08",
+          "indicator": "admitted_stay",
+          "snum": "1359",
+          "hospital": "University Health Network-General Site",
+          "meanMinutes": 984.0,
+          "p90Minutes": 1788.0,
+          "cases": 1161
+        }
+      ],
+      "edRelativeCongestion": 1.278
+    },
+    "twh": {
+      "offloadMinutes": 59,
+      "edSourceId": "1364",
+      "edHospital": "University Health Network-Western Site",
+      "edMonth": "2026-08",
+      "edIndicators": [
+        {
+          "month": "2026-08",
+          "indicator": "first_assessment",
+          "snum": "1364",
+          "hospital": "University Health Network-Western Site",
+          "meanMinutes": 144.0,
+          "p90Minutes": 288.0,
+          "cases": 5159
+        },
+        {
+          "month": "2026-08",
+          "indicator": "high_urgency_stay",
+          "snum": "1364",
+          "hospital": "University Health Network-Western Site",
+          "meanMinutes": 372.0,
+          "p90Minutes": 600.0,
+          "cases": 3404
+        },
+        {
+          "month": "2026-08",
+          "indicator": "admitted_stay",
+          "snum": "1364",
+          "hospital": "University Health Network-Western Site",
+          "meanMinutes": 1074.0,
+          "p90Minutes": 1944.0,
+          "cases": 876
+        }
+      ],
+      "edRelativeCongestion": 1.333
+    },
+    "mgh": {
+      "offloadMinutes": 36,
+      "edSourceId": "4935",
+      "edHospital": "Tor. East Hlth Ntwrk-Michael Garron Hosp",
+      "edMonth": "2026-08",
+      "edIndicators": [
+        {
+          "month": "2026-08",
+          "indicator": "first_assessment",
+          "snum": "4935",
+          "hospital": "Tor. East Hlth Ntwrk-Michael Garron Hosp",
+          "meanMinutes": 114.0,
+          "p90Minutes": 228.0,
+          "cases": 9075
+        },
+        {
+          "month": "2026-08",
+          "indicator": "low_urgency_stay",
+          "snum": "4935",
+          "hospital": "Tor. East Hlth Ntwrk-Michael Garron Hosp",
+          "meanMinutes": 204.0,
+          "p90Minutes": 390.0,
+          "cases": 443
+        },
+        {
+          "month": "2026-08",
+          "indicator": "high_urgency_stay",
+          "snum": "4935",
+          "hospital": "Tor. East Hlth Ntwrk-Michael Garron Hosp",
+          "meanMinutes": 276.0,
+          "p90Minutes": 486.0,
+          "cases": 7415
+        },
+        {
+          "month": "2026-08",
+          "indicator": "admitted_stay",
+          "snum": "4935",
+          "hospital": "Tor. East Hlth Ntwrk-Michael Garron Hosp",
+          "meanMinutes": 1056.0,
+          "p90Minutes": 1770.0,
+          "cases": 1235
+        }
+      ],
+      "edRelativeCongestion": 1.056
+    },
+    "sun": {
+      "offloadMinutes": 28,
+      "edSourceId": "4931",
+      "edHospital": "Sunnybrook Health Sciences Centre",
+      "edMonth": "2026-08",
+      "edIndicators": [
+        {
+          "month": "2026-08",
+          "indicator": "first_assessment",
+          "snum": "4931",
+          "hospital": "Sunnybrook Health Sciences Centre",
+          "meanMinutes": 168.0,
+          "p90Minutes": 342.0,
+          "cases": 5051
+        },
+        {
+          "month": "2026-08",
+          "indicator": "low_urgency_stay",
+          "snum": "4931",
+          "hospital": "Sunnybrook Health Sciences Centre",
+          "meanMinutes": 294.0,
+          "p90Minutes": 510.0,
+          "cases": 621
+        },
+        {
+          "month": "2026-08",
+          "indicator": "high_urgency_stay",
+          "snum": "4931",
+          "hospital": "Sunnybrook Health Sciences Centre",
+          "meanMinutes": 390.0,
+          "p90Minutes": 600.0,
+          "cases": 2988
+        },
+        {
+          "month": "2026-08",
+          "indicator": "admitted_stay",
+          "snum": "4931",
+          "hospital": "Sunnybrook Health Sciences Centre",
+          "meanMinutes": 1020.0,
+          "p90Minutes": 1824.0,
+          "cases": 1442
+        }
+      ],
+      "edRelativeCongestion": 1.5
+    },
+    "sjh": {
+      "offloadMinutes": 60,
+      "edSourceId": "4800",
+      "edHospital": "Unity Health Toronto - St. Joseph's",
+      "edMonth": "2026-08",
+      "edIndicators": [
+        {
+          "month": "2026-08",
+          "indicator": "first_assessment",
+          "snum": "4800",
+          "hospital": "Unity Health Toronto - St. Joseph's",
+          "meanMinutes": 66.0,
+          "p90Minutes": 132.0,
+          "cases": 7063
+        },
+        {
+          "month": "2026-08",
+          "indicator": "low_urgency_stay",
+          "snum": "4800",
+          "hospital": "Unity Health Toronto - St. Joseph's",
+          "meanMinutes": 192.0,
+          "p90Minutes": 360.0,
+          "cases": 1128
+        },
+        {
+          "month": "2026-08",
+          "indicator": "high_urgency_stay",
+          "snum": "4800",
+          "hospital": "Unity Health Toronto - St. Joseph's",
+          "meanMinutes": 252.0,
+          "p90Minutes": 450.0,
+          "cases": 5079
+        },
+        {
+          "month": "2026-08",
+          "indicator": "admitted_stay",
+          "snum": "4800",
+          "hospital": "Unity Health Toronto - St. Joseph's",
+          "meanMinutes": 1284.0,
+          "p90Minutes": 2568.0,
+          "cases": 901
+        }
+      ],
+      "edRelativeCongestion": 0.611
+    }
+  }
+}

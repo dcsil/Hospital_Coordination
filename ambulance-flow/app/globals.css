@@ -85,3 +85,5 @@ main[data-page="operations"] .table-scroll { min-width: 0; max-width: 100%; }
   main[data-page="operations"] .alert-banner { flex-wrap: wrap; }
   main[data-page="operations"] .bottom-grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+.prediction-breakdown{font-size:10px;white-space:normal;margin:12px 0;color:var(--ink)}.prediction-breakdown summary{cursor:pointer;color:var(--green);line-height:1.6}.prediction-breakdown dl{margin:10px 0;min-width:210px}.prediction-breakdown dl>div{display:flex;justify-content:space-between;gap:14px;padding:5px 0;border-bottom:1px solid var(--line)}.prediction-breakdown dd{margin:0;white-space:nowrap}.prediction-breakdown p{font-size:9px;max-width:360px;color:var(--muted)}

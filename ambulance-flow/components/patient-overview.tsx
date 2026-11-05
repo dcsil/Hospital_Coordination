@@ -1,4 +1,5 @@
 'use client';
+import PredictionBreakdown from './prediction-breakdown';
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Check, MapPin, Navigation, RotateCcw } from 'lucide-react';
 import { journeyNetwork, journeySchema, LOCATIONS, resolveLocation, type Journey } from '@/lib/patient-journey';
@@ -40,7 +41,7 @@ export default function PatientOverview() {
           <h2 aria-live="polite">{journey.status === 'choosing' ? 'Choose a hospital' : journey.status === 'en_route' ? 'On the way to hospital' : 'Trip complete'}</h2>
           <p><MapPin size={14}/> {journey.location} · {journey.urgency} urgency</p>
           {journey.status === 'choosing' ? <>
-            <p>Ranked by travel + offload time.</p><div className="patient-options" role="radiogroup" aria-label="Hospital destination">{network?.ranked.map((c, i) => <label className={`patient-option ${journey.selected === c.hospitalId ? 'chosen' : ''}`} key={c.hospitalId}><input type="radio" name="hospital" checked={journey.selected === c.hospitalId} onChange={() => setJourney({ ...journey, selected: c.hospitalId })}/><div>{i === 0 && <span className="patient-recommended">RECOMMENDED</span>}<strong>{i + 1}. {c.name}</strong><small>{c.travel} min travel + {c.offload} min offload</small></div><b>{c.total}<small>min total</small></b></label>)}</div>
+            <p>Ranked by travel + offload time.</p><div className="patient-options" role="radiogroup" aria-label="Hospital destination">{network?.ranked.map((c, i) => <div key={c.hospitalId}><label className={`patient-option ${journey.selected === c.hospitalId ? 'chosen' : ''}`}><input type="radio" name="hospital" checked={journey.selected === c.hospitalId} onChange={() => setJourney({ ...journey, selected: c.hospitalId })}/><div>{i === 0 && <span className="patient-recommended">RECOMMENDED</span>}<strong>{i + 1}. {c.name}</strong><small>{c.travel} min travel + {c.offload} min offload</small></div><b>{c.total}<small>min total</small></b></label><PredictionBreakdown prediction={c} travel={c.travel} total={c.total}/></div>)}</div>
             <button className="button primary patient-submit" onClick={() => { const startedAt = Date.now(); setNow(startedAt); setJourney({ ...journey, status: 'en_route', startedAt }); }}><Navigation size={16}/>Start route to {selected?.name}</button><button className="text-button patient-back" onClick={() => setJourney(null)}>Edit patient details</button>
           </> : <>
             <div className="patient-destination"><span className="patient-complete-icon">{journey.status === 'arrived' ? <Check size={26}/> : <Navigation size={26}/>}</span><h3>{selected?.name}</h3><p>{hospital?.address}</p><div className="patient-total"><strong>{selected?.total}<small> min</small></strong><span>Predicted total at departure</span></div><p>{selected?.travel} min travel + {selected?.offload} min offload</p></div>

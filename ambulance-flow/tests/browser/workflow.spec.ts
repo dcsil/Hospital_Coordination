@@ -45,13 +45,16 @@ test('complete browser workflow: configure, approve, change capacity, evaluate, 
 test('API validates inputs, rejects revision races, and journals every committed event', async ({ request }) => {
   const invalid = await request.post('/api/scenarios', { data: { ...DEFAULT_CONFIG, fleet: -1 } }); expect(invalid.status()).toBe(400);
   const denied = await request.post('/api/scenarios', { headers: { Origin: 'https://unrelated.example' }, data: DEFAULT_CONFIG }); expect(denied.status()).toBe(403);
-  const saved = await request.post('/api/scenarios', { data: { ...DEFAULT_CONFIG, name: 'API QA', duration: 60 } }); expect(saved.status()).toBe(201);
-  const scenario = await saved.json(); const created = await request.post('/api/runs', { data: { scenarioId: scenario.id } }); expect(created.status()).toBe(201); let run = await created.json();
+  const saved = await request.post('/api/scenarios', { data: { ...DEFAULT_CONFIG, name: 'API QA', duration: 60, prediction: { congestionWeight: 0, queueWeight: 1, maxMinutes: 180 } } }); expect(saved.status()).toBe(201);
+  const scenario = await saved.json(); const created = await request.post('/api/runs', { data: { scenarioId: scenario.id } }); expect(created.status()).toBe(201); let run = await created.json(); expect(run.config.prediction.congestionWeight).toBe(0);
   const [a, b] = await Promise.all([request.post(`/api/runs/${run.id}/control`, { data: { revision: 0, action: 'advance', minutes: 30 } }), request.post(`/api/runs/${run.id}/control`, { data: { revision: 0, action: 'advance', minutes: 20 } })]);
   expect([a.status(), b.status()].sort()).toEqual([200, 409]);
   run = await (await request.get(`/api/runs/${run.id}/state`)).json(); expect([20, 30]).toContain(run.time); expect(run.revision).toBe(1);
   const events = await (await request.get(`/api/runs/${run.id}/events`)).json(); expect(events.length).toBe(run.sequence); expect(new Set(events.map((e: { sequence: number }) => e.sequence)).size).toBe(events.length);
-  const predictions = await request.get(`/api/runs/${run.id}/predictions`); expect(predictions.status()).toBe(200); expect(await predictions.json()).toHaveLength(5);
+  const predictions = await request.get(`/api/runs/${run.id}/predictions`); expect(predictions.status()).toBe(200); const forecasts = await predictions.json(); expect(forecasts).toHaveLength(5);
+  expect(forecasts[0].horizons[0].baseline).toBe(58);
+  expect(forecasts[0].horizons[0].congestionAdjustment).toBe(0);
+  expect(forecasts[0].horizons[0].oldOffload).toBeGreaterThan(0);
   while (run.status === 'running') { const response = await request.post(`/api/runs/${run.id}/control`, { data: { revision: run.revision, action: 'advance', minutes: 30 } }); expect(response.status()).toBe(200); run = await response.json(); }
   const exported = await (await request.get(`/api/runs/${run.id}/export`)).json(); expect(exported.events.length).toBe(run.sequence); expect(exported.metrics.completed).toBeGreaterThan(0);
   const ended = await request.post(`/api/runs/${run.id}/control`, { data: { revision: run.revision, action: 'resume' } }); expect(ended.status()).toBe(409);

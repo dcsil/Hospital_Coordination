@@ -28,6 +28,12 @@ test('patient can choose an alternative, reload route, arrive, and begin again',
   await page.getByRole('button', { name: 'Union Station', exact: true }).click();
   await page.getByRole('button', { name: 'Find hospitals' }).click();
   await expect(page.locator('.patient-option')).toHaveCount(5);
+  const explanation = page.locator('.prediction-breakdown').first();
+  await explanation.locator('summary').click();
+  await expect(explanation).toContainText('Historical offload');
+  await expect(explanation).toContainText('Additional queue delay');
+  await expect(explanation).toContainText('Previous model offload');
+  await expect(explanation).toContainText('Total expected time');
   await page.locator('.patient-option').nth(1).getByRole('radio').check();
   const destination = await page.locator('.patient-option').nth(1).locator('strong').innerText();
   await page.screenshot({ path: 'outputs/patient-choices-desktop.png', fullPage: true });

@@ -65,3 +65,89 @@ test('matched comparisons are reproducible, include censoring, and expose paired
   for (const s of first.summary) { assert(s.ciLow <= s.delta); assert(s.delta <= s.ciHigh); }
   assert(first.rows.some(r => r.metrics.unfinished > 0));
 });
+
+test('historical chart baselines match Toronto sites; virtual sites use median fallback', () => {
+  const r = createRun({ ...DEFAULT_CONFIG, hospitals: 6 }, 'history');
+  assert.deepEqual(r.hospitals.slice(0,5).map(h => forecast(r,h).baseline), [58,59,36,28,60]);
+  assert.equal(forecast(r,r.hospitals[5]).baseline, 43);
+  assert.equal(forecast(r,r.hospitals[5]).fallback,true);
+});
+function queueFixture() {
+  const r=createRun({...DEFAULT_CONFIG,manual:true,slots:1,serviceMinutes:18},'queue');
+  r.incidents=[];r.ambulances=[];
+  const h=r.hospitals[3];
+  h.observations=[{time:0,queue:0,busy:0,capacity:1,releases:[]}];
+  return {r,h};
+}
+test('arrival-time queue accounts for ETA order, capacity and baseline waiting allowance', () => {
+  const {r,h}=queueFixture();
+  r.ambulances.push({id:'inbound',destination:h.id,status:'EN_ROUTE',until:5});
+  const early=forecast(r,h,10);
+  assert.equal(early.projectedWait,13);
+  assert.equal(early.queueAdjustment,3); // baseline 28 includes 10 minutes ordinary waiting
+  assert.equal(forecast(r,h,1).inbound,0);
+  assert.equal(forecast(r,h,30).queueAdjustment,0);
+  r.ambulances.push({id:'second',destination:h.id,status:'EN_ROUTE',until:6});
+  const busy=forecast(r,h,10);
+  assert(busy.offload>early.offload);
+  assert.equal(busy.projectedQueue,1);
+  assert(forecast(r,h,10,'second').offload<busy.offload);
+  setCapacity(r,h.id,2);
+  assert(forecast(r,h,10).offload<busy.offload);
+});
+test('reported residual handovers and completion events update forecasts', () => {
+  const {r,h}=queueFixture();
+  h.observations=[{time:0,queue:3,busy:1,capacity:1,releases:[2]}];
+  const before=forecast(r,h,0);
+  assert.equal(before.projectedWait,56);
+  h.observations.push({time:1,queue:0,busy:0,capacity:1,releases:[]});r.time=1;
+  assert(forecast(r,h,0).offload<before.offload);
+  const live=createRun(DEFAULT_CONFIG,'completion');
+  advance(live,80);
+  assert(live.events.some(e=>e.type==='handover'));
+  for(const site of live.hospitals) assert.equal(observed(live,site).releases.length,site.active.length);
+});
+test('congestion coefficients are configurable and zero capacity remains ineligible', () => {
+  const {r,h}=queueFixture();
+  h.observations=[{time:0,queue:0,busy:1,capacity:1,releases:[20]}];
+  const normal=forecast(r,h,0);
+  r.config.prediction={congestionWeight:0,queueWeight:0};
+  const disabled=forecast(r,h,0);
+  assert.equal(disabled.congestionAdjustment,0);assert.equal(disabled.queueAdjustment,0);
+  assert.notEqual(normal.offload,disabled.offload);
+  setCapacity(r,h.id,0);assert.equal(forecast(r,h).offload,180);
+});
+test('hospital recommendations rank with hybrid travel plus offload and expose old comparison', () => {
+  const r=createRun({...DEFAULT_CONFIG,manual:true},'ranking');advance(r,30);
+  const a=r.ambulances.find(a=>a.status==='AWAITING_DECISION');assert(a);
+  const ranked=choices(r,a.id).filter(c=>c.eligible);
+  for(let i=0;i<ranked.length;i++) {
+    const c=ranked[i];assert.equal(c.total,Math.round((c.travel+c.offload)*10)/10);
+    assert(Number.isFinite(c.oldOffload));assert(c.baseline>=28);
+    if(i) assert(ranked[i-1].total<=c.total);
+  }
+});
+test('actual handover completion drains projected waiting work without rebuilding a run', () => {
+  const {r,h}=queueFixture();
+  for(let i=0;i<4;i++) {
+    const id=`controlled-${i}`;
+    r.incidents.push({id:`case-${i}`,time:0,lat:h.lat,lng:h.lng,care:'general',scene:0,serviceFactor:1,assignedAt:0});
+    r.ambulances.push({id,lat:h.lat,lng:h.lng,from:h,routeStart:0,incidentId:`case-${i}`,destination:h.id,status:i===0?'HANDOVER':'WAITING_TO_OFFLOAD',until:i===0?2:0,arrivalAt:0});
+  }
+  h.active=['controlled-0'];h.queue=['controlled-1','controlled-2','controlled-3'];
+  h.observations=[{time:0,queue:3,busy:1,capacity:1,releases:[2]}];
+  const before=forecast(r,h,0);
+  advance(r,2);
+  assert(r.events.some(e=>e.type==='handover'));
+  assert.equal(h.queue.length,2);
+  assert(forecast(r,h,0).offload<before.offload);
+});
+test('old snapshots, reduced capacity and caps produce finite interpretable estimates', () => {
+  const {r,h}=queueFixture();
+  h.observations=[{time:0,queue:0,busy:2,capacity:1,releases:[4,12]}];
+  assert.equal(forecast(r,h,0).projectedWait,12);
+  delete h.observations[0].releases;
+  assert.equal(forecast(r,h,0).projectedWait,9);
+  h.observations[0].queue=100;
+  const p=forecast(r,h,0);assert.equal(p.offload,180);assert.equal(p.capped,true);
+});
