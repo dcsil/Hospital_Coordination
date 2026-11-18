@@ -45,3 +45,18 @@ export function incomingAmbulances(run: Run, hospitalId?: string): IncomingAmbul
     })
     .sort((x, y) => x.etaMinute - y.etaMinute || x.ambulanceId.localeCompare(y.ambulanceId));
 }
+
+export type ArrivalInterval = { start: number; end: number; ambulances: IncomingAmbulance[] };
+
+/** Groups arrivals into consecutive ETA intervals starting now (e.g. 0–15, 15–30 min).
+ * Every interval up to the last arrival is kept, so empty spans show as gaps. */
+export function arrivalIntervals(rows: IncomingAmbulance[], size = 15): ArrivalInterval[] {
+  if (!(size > 0)) throw new Error('Interval size must be positive.');
+  const latest = rows.reduce((max, r) => Math.max(max, r.etaMinutes), 0);
+  const count = Math.floor(latest / size) + 1;
+  return Array.from({ length: count }, (_, i) => {
+    const start = i * size;
+    const end = start + size;
+    return { start, end, ambulances: rows.filter(r => r.etaMinutes >= start && r.etaMinutes < end) };
+  });
+}

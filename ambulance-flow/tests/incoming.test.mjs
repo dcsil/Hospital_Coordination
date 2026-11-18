@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { DEFAULT_CONFIG, createRun, advance, inbound, forecast } from '../lib/simulation.ts';
-import { incomingAmbulances, simulationClock } from '../lib/incoming.ts';
+import { incomingAmbulances, simulationClock, arrivalIntervals } from '../lib/incoming.ts';
 
 test('incoming list matches en-route ambulances and per-hospital inbound counts', () => {
   const run = createRun({ ...DEFAULT_CONFIG, callsPerHour: 40 }, 'incoming');
@@ -56,4 +56,27 @@ test('incoming view leaves the simulation and forecasts unchanged', () => {
 test('simulation clock formats minutes from 08:00', () => {
   assert.equal(simulationClock(0), '08:00');
   assert.equal(simulationClock(75), '09:15');
+});
+
+test('arrival intervals partition every incoming ambulance exactly once, with no gaps', () => {
+  const run = createRun({ ...DEFAULT_CONFIG, callsPerHour: 60 }, 'intervals');
+  for (let t = 0; t < 150; t++) {
+    advance(run, 1);
+    const rows = incomingAmbulances(run);
+    const buckets = arrivalIntervals(rows, 15);
+    assert.equal(buckets.reduce((n, b) => n + b.ambulances.length, 0), rows.length);
+    buckets.forEach((b, i) => {
+      assert.equal(b.start, i * 15);
+      assert.equal(b.end, b.start + 15);
+      for (const r of b.ambulances) assert.ok(r.etaMinutes >= b.start && r.etaMinutes < b.end);
+    });
+  }
+});
+
+test('arrival intervals include the last arrival and handle an empty list', () => {
+  const row = (eta) => ({ ambulanceId: `AMB-${eta}`, incidentId: 'C', hospitalId: 'h', hospitalName: 'H', careLevel: 'general', etaMinute: eta, etaMinutes: eta });
+  const buckets = arrivalIntervals([row(0), row(30)], 15);
+  assert.deepEqual(buckets.map(b => b.ambulances.length), [1, 0, 1]);
+  assert.equal(arrivalIntervals([], 15).length, 1);
+  assert.throws(() => arrivalIntervals([], 0));
 });
