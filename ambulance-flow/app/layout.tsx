@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Kinetic · Ambulance Flow",
-  description: "A simulation workspace for ambulance coordination, congestion forecasting, and reproducible policy evaluation.",
+  description: "Simulated emergency response, ambulance movement, historical/live offload prediction and matched policy evaluation.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

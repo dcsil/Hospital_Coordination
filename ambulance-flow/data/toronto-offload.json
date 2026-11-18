@@ -1,0 +1,80 @@
+[
+  {
+    "hospital": "North York General",
+    "meanMinutes": 23,
+    "period": "2022\u20132023",
+    "approximate": true
+  },
+  {
+    "hospital": "Sunnybrook",
+    "meanMinutes": 28,
+    "period": "2022\u20132023",
+    "approximate": true
+  },
+  {
+    "hospital": "Michael Garron",
+    "meanMinutes": 36,
+    "period": "2022\u20132023",
+    "approximate": true
+  },
+  {
+    "hospital": "Scarborough Birchmount",
+    "meanMinutes": 36,
+    "period": "2022\u20132023",
+    "approximate": true
+  },
+  {
+    "hospital": "Humber River",
+    "meanMinutes": 37,
+    "period": "2022\u20132023",
+    "approximate": true
+  },
+  {
+    "hospital": "Etobicoke General",
+    "meanMinutes": 41,
+    "period": "2022\u20132023",
+    "approximate": true
+  },
+  {
+    "hospital": "Mount Sinai",
+    "meanMinutes": 43,
+    "period": "2022\u20132023",
+    "approximate": true
+  },
+  {
+    "hospital": "Scarborough Centenary",
+    "meanMinutes": 44,
+    "period": "2022\u20132023",
+    "approximate": true
+  },
+  {
+    "hospital": "Scarborough General",
+    "meanMinutes": 48,
+    "period": "2022\u20132023",
+    "approximate": true
+  },
+  {
+    "hospital": "Toronto General",
+    "meanMinutes": 58,
+    "period": "2022\u20132023",
+    "approximate": true
+  },
+  {
+    "hospital": "St. Michael\u2019s",
+    "meanMinutes": 58,
+    "period": "2022\u20132023",
+    "approximate": true
+  },
+  {
+    "hospital": "Toronto Western",
+    "meanMinutes": 59,
+    "period": "2022\u20132023",
+    "approximate": true
+  },
+  {
+    "hospital": "St. Joseph's",
+    "meanMinutes": 60,
+    "period": "2022\u20132023",
+    "approximate": true
+  }
+]

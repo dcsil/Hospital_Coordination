@@ -1,13 +1,18 @@
+import { edService } from '@/lib/live-ed-service';
+import { hospitalPredictions } from '@/lib/hospital-offload';
+import { roadService } from '@/lib/road-travel';
+import { originSchema } from '@/lib/patient-journey';
 import { env } from 'cloudflare:workers';
 import { z } from 'zod';
-import { advance, choices, compare, createRun, decide, forecast, metrics, record, setCapacity, type Run } from '@/lib/simulation';
+import { advance, choices, compare, createRun, decide, forecast, metrics, record, setCapacity, injectEmergency, type Run } from '@/lib/simulation';
 import { configSchema, controlSchema } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
 const json = (value: unknown, status = 200) => Response.json(value, { status, headers: { 'Cache-Control': 'no-store' } });
 class HttpError extends Error { constructor(public status: number, message: string) { super(message); } }
 function database() { if (!env.DB) throw new HttpError(503, 'Database is unavailable. Apply the local database migration before starting.'); return env.DB; }
-async function load(id: string): Promise<Run> { const row = await database().prepare('SELECT state FROM simulation_runs WHERE id = ?').bind(id).first<{ state: string }>(); if (!row) throw new HttpError(404, 'Simulation not found.'); return JSON.parse(row.state); }
+async function load(id: string): Promise<Run> { const row = await database().prepare('SELECT state FROM simulation_runs WHERE id = ?').bind(id).first<{ state: string }>(); if (!row) throw new HttpError(404, 'Simulation not found.'); const run:Run=JSON.parse(row.state);if(run.modelVersion!==3)throw new HttpError(409,'This saved run uses an older hospital model. Start a new scenario.');return attachEd(run); }
+async function attachEd(run:Run){run.liveEd=await edService.get();run.liveEdEvaluatedAt=new Date().toISOString();return run;}
 async function save(run: Run, expected: number, previousSequence: number) {
   const db = database(); const pending = run.events.filter(e => e.sequence > previousSequence); run.events = run.events.slice(-80); run.revision = expected + 1;
   const writeToken = crypto.randomUUID();
@@ -22,23 +27,26 @@ async function save(run: Run, expected: number, previousSequence: number) {
 async function handle(request: Request) {
   const url = new URL(request.url); const p = url.pathname.replace(/^\/api\//, '').split('/'); const method = request.method;
   if (method === 'POST' && request.headers.get('origin') && request.headers.get('origin') !== url.origin) throw new HttpError(403, 'Cross-origin write requests are not allowed.');
+  if(method==='GET' && p[0]==='ed-data')return json({snapshot:await edService.get(),evaluatedAt:new Date().toISOString()});
+  if(method==='GET' && p[0]==='hospitals'){const snapshot=await edService.get();const evaluatedAt=new Date().toISOString();return json({hospitals:hospitalPredictions(snapshot,evaluatedAt),evaluatedAt});}
+  if(method==='GET' && p[0]==='travel'){const parsed=originSchema.safeParse({lat:url.searchParams.has('lat')?Number(url.searchParams.get('lat')):NaN,lng:url.searchParams.has('lng')?Number(url.searchParams.get('lng')):NaN});if(!parsed.success)return json({error:'Provide valid Toronto coordinates.'},400);return json(await roadService.get(parsed.data));}
   const db = database();
-  if (p[0] === 'health') return json({ ok: true, mode: 'simulation' });
+  if (p[0] === 'health') return json({ ok: true, mode: 'simulation', travelSource:'Estimated simulation travel' });
   if (method === 'GET' && p[0] === 'scenarios') {
     if (p[1]) { const row = await db.prepare('SELECT * FROM scenarios WHERE id = ?').bind(p[1]).first<{ id: string; config: string }>(); if (!row) throw new HttpError(404, 'Scenario not found.'); return json({ ...row, config: JSON.parse(row.config) }); }
     const rows = await db.prepare('SELECT * FROM scenarios ORDER BY created_at DESC LIMIT 100').all<{ config: string }>(); return json(rows.results.map(r => ({ ...r, config: JSON.parse(r.config) })));
   }
   if (method === 'POST' && p[0] === 'scenarios') { const config = configSchema.parse(await request.json()); const id = crypto.randomUUID(); await db.prepare('INSERT INTO scenarios (id, name, config, created_at) VALUES (?, ?, ?, ?)').bind(id, config.name, JSON.stringify(config), new Date().toISOString()).run(); return json({ id, config }, 201); }
-  if (method === 'GET' && p[0] === 'evaluations') { const rows = await db.prepare('SELECT * FROM evaluations ORDER BY created_at DESC LIMIT 20').all<{ result: string }>(); return json(rows.results.map(r => ({ ...r, result: JSON.parse(r.result) }))); }
+  if (method === 'GET' && p[0] === 'evaluations') { const rows = await db.prepare("SELECT * FROM evaluations WHERE json_extract(result, '$.modelVersion') = 3 ORDER BY created_at DESC LIMIT 20").all<{ result: string }>(); return json(rows.results.map(r => ({ ...r, result: JSON.parse(r.result) }))); }
   if (method === 'POST' && p[0] === 'runs' && p[1] === 'compare') {
     const body = z.object({ config: configSchema, seeds: z.array(z.number().int().min(0).max(2147483647)).min(3).max(10).refine(s => new Set(s).size === s.length, 'Use distinct seeds.') }).parse(await request.json());
-    const result = compare(body.config, body.seeds); result.id = crypto.randomUUID(); result.createdAt = new Date().toISOString();
+    const liveEd=await edService.get();const liveEdEvaluatedAt=new Date().toISOString();const result = compare(body.config, body.seeds,{liveEd,liveEdEvaluatedAt}); result.id = crypto.randomUUID(); result.createdAt = new Date().toISOString();
     await db.prepare('INSERT INTO evaluations (id, name, result, created_at) VALUES (?, ?, ?, ?)').bind(result.id, body.config.name, JSON.stringify(result), result.createdAt).run(); return json(result);
   }
   if (p[0] === 'runs' && !p[1]) {
-    if (method === 'GET') { const rows = await db.prepare('SELECT id, scenario_id, name, status, revision, created_at, updated_at FROM simulation_runs ORDER BY updated_at DESC LIMIT 50').all(); return json(rows.results); }
+    if (method === 'GET') { const rows = await db.prepare("SELECT id, scenario_id, name, status, revision, created_at, updated_at FROM simulation_runs WHERE json_extract(state, '$.modelVersion') = 3 ORDER BY updated_at DESC LIMIT 50").all(); return json(rows.results); }
     const body = z.object({ scenarioId: z.string().min(1) }).parse(await request.json()); const s = await db.prepare('SELECT config FROM scenarios WHERE id = ?').bind(body.scenarioId).first<{ config: string }>(); if (!s) throw new HttpError(404, 'Scenario not found.');
-    const run = createRun(configSchema.parse(JSON.parse(s.config)), crypto.randomUUID(), body.scenarioId);
+    const run = await attachEd(createRun(configSchema.parse(JSON.parse(s.config)), crypto.randomUUID(), body.scenarioId));
     await db.prepare('INSERT INTO simulation_runs (id, scenario_id, name, status, state, revision, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').bind(run.id, run.scenarioId, run.config.name, run.status, JSON.stringify(run), 0, run.createdAt, run.createdAt).run();
     await db.prepare('INSERT INTO simulation_events (id, run_id, sequence, payload) VALUES (?, ?, ?, ?)').bind(`${run.id}:1`, run.id, 1, JSON.stringify(run.events[0])).run(); return json(run, 201);
   }
@@ -58,11 +66,13 @@ async function handle(request: Request) {
       if (p[2] === 'decisions') { const body = z.object({ ambulanceId: z.string(), hospitalId: z.string() }).parse(raw); decide(run, body.ambulanceId, body.hospitalId); }
       else { const body = controlSchema.parse(raw);
         if (body.action === 'advance') advance(run, body.minutes ?? 1);
+        if(body.action==='step'){const paused=run.status==='paused';run.status='running';advance(run,body.minutes??5);if(paused&&run.status==='running')run.status='paused';}
         if (body.action === 'pause') run.status = 'paused';
         if (body.action === 'resume') run.status = 'running';
         if (body.action === 'stop') run.status = 'stopped';
         if (body.action === 'policy') { run.config.policy = z.enum(['nearest', 'coordinated']).parse(body.policy); record(run, 'policy', `Destination policy changed to ${run.config.policy}.`); }
         if (body.action === 'manual') { run.config.manual = z.boolean().parse(body.manual); record(run, 'approval_mode', `Dispatcher approval ${run.config.manual ? 'enabled' : 'disabled'} for simulated cases.`); }
+        if (body.action === 'emergency') injectEmergency(run,body.lat!==undefined&&body.lng!==undefined?{lat:body.lat,lng:body.lng}:undefined);
         if (body.action === 'capacity') setCapacity(run, z.string().parse(body.hospitalId), z.number().int().min(0).max(6).parse(body.capacity));
       }
       await save(run, revision, previousSequence); return json(run);
