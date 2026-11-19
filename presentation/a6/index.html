@@ -317,6 +317,15 @@ a { color: var(--cx-accent); }
 @keyframes fxFill { from { width: 0; } to { width: var(--w); } }
 .slide.active .fx-bar span { animation: fxFill 1.4s ease-out both; animation-delay: var(--d, 0s); }
 </style>
+<style id="reveal-css">
+.reveal-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(0.7rem, 1.6vw, 1.2rem); align-items: stretch; height: 100%; min-height: 330px; }
+.tall-card { display: flex; flex-direction: column; gap: 0.5rem; padding: clamp(1rem, 2.4vh, 1.6rem); border-radius: 18px; background: #ffffff; border: 1px solid #d6e0cc; box-shadow: 0 6px 24px rgba(37,90,66,0.07); opacity: 0; transform: translateY(26px); transition: opacity 0.5s ease, transform 0.5s ease; }
+.tall-card.shown { opacity: 1; transform: none; }
+.tall-card.hi { background: linear-gradient(160deg, #eef8f2, #ffffff); border-color: #255a42; }
+.tall-card h3 { font-size: clamp(1.1rem, 2.4vh, 1.45rem); line-height: 1.25; color: #1e4a37; }
+.tall-card p { font-size: clamp(0.95rem, 2vh, 1.15rem); line-height: 1.45; }
+.tall-card .muted-tag { margin-top: auto; font-size: 0.95rem; color: #6c8576; }
+</style>
 </head>
 <body>
 <div class="deck">
@@ -346,19 +355,32 @@ a { color: var(--cx-accent); }
         <h2>Inefficient communication between ambulance call centre operators, drivers and hospitals</h2>
       </div>
       <div class="problem-bottom">
-        <div class="kicker" style="margin-bottom:0.4rem;">Competitor analysis</div>
-        <div class="compact"><table>
-  <thead><tr><th>Capability</th><th>Patient Destination Software</th><th>Waypoint</th></tr></thead>
-  <tbody>
-    <tr><td>Recommends a hospital</td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
-    <tr><td>Counts ambulances already en route</td><td><span class="cross">✗</span></td><td><span class="check">✓</span></td></tr>
-    <tr><td>Predicts offload time</td><td><span class="muted-tag">Not verified</span></td><td><span class="check">✓</span> <span class="muted-tag">simulated</span></td></tr>
-    <tr><td>Uses live ER wait data</td><td><span class="partial">Partial</span></td><td><span class="check">✓</span></td></tr>
-    <tr><td>Uses live traffic</td><td><span class="muted-tag">Not verified</span></td><td><span class="cross">✗</span> <span class="muted-tag">planned</span></td></tr>
-    <tr><td>Dispatcher makes final choice</td><td><span class="muted-tag">Not verified</span></td><td><span class="check">✓</span></td></tr>
-  </tbody>
-</table></div>
-        <p class="legend">Patient Destination Software entries come from the Toronto Paramedic Association page and our Kelly interview.</p>
+        <div class="reveal-row">
+          <div class="tall-card">
+            <div class="pill warm">Operator</div>
+            <h3>Decides and calls EMS</h3>
+            <p>Phone and radio check-ins with each hospital.</p>
+            <p class="muted-tag">No live view of ambulances en route.</p>
+          </div>
+          <div class="tall-card">
+            <div class="pill warm">Driver</div>
+            <h3>Chooses the hospital</h3>
+            <p>Relies on experience and a phone call to confirm beds.</p>
+            <p class="muted-tag">Status is often out of date.</p>
+          </div>
+          <div class="tall-card">
+            <div class="pill">Toronto</div>
+            <h3>Patient Destination Software</h3>
+            <p>A coordinator assigns a hospital by location, urgency and services.</p>
+            <p class="muted-tag">Misses ambulances already on the way. Offload tracked by radio.</p>
+          </div>
+          <div class="tall-card hi">
+            <div class="pill">Waypoint</div>
+            <h3>One shared view</h3>
+            <p>Counts inbound ambulances and predicts offload at arrival.</p>
+            <p class="muted-tag">Live traffic planned.</p>
+          </div>
+        </div>
       </div>
     </section>
     <section class="slide" data-presenter="Azaria · Richard">
@@ -822,6 +844,38 @@ renderTimer();
   var obs = new MutationObserver(update);
   slides.forEach(function (s) { obs.observe(s, { attributes: true, attributeFilter: ['class'] }); });
   update();
+})();
+</script>
+<script id="reveal-js">
+(function () {
+  var cards = function () { return Array.from(document.querySelectorAll('.problem-slide .tall-card')); };
+  var shown = 0;
+  function isProblem() { var a = document.querySelector('.slide.active'); return a && a.classList.contains('problem-slide'); }
+  function paint() { cards().forEach(function (c, i) { c.classList.toggle('shown', i < shown); }); }
+  function forward() { var n = cards().length; if (shown < n) { shown++; paint(); return true; } return false; }
+  function back() { if (shown > 0) { shown--; paint(); return true; } return false; }
+  // when the problem slide comes into view, reset (from title) or show all (from later slides)
+  var last = -1;
+  var obs = new MutationObserver(function () {
+    var all = Array.from(document.querySelectorAll('.slide'));
+    var idx = all.findIndex(function (s) { return s.classList.contains('active'); });
+    if (idx === 1 && last !== 1) { shown = (last > 1) ? cards().length : 0; paint(); }
+    last = idx;
+  });
+  Array.from(document.querySelectorAll('.slide')).forEach(function (s) { obs.observe(s, { attributes: true, attributeFilter: ['class'] }); });
+  document.addEventListener('click', function (e) {
+    if (!isProblem()) return;
+    var t = e.target.closest && e.target.closest('#next');
+    if (t && forward()) { e.stopImmediatePropagation(); e.preventDefault(); }
+    var pv = e.target.closest && e.target.closest('#prev');
+    if (pv && back()) { e.stopImmediatePropagation(); e.preventDefault(); }
+  }, true);
+  document.addEventListener('keydown', function (e) {
+    if (!isProblem()) return;
+    if (['ArrowRight', 'PageDown', ' '].indexOf(e.key) !== -1) { if (forward()) { e.stopImmediatePropagation(); e.preventDefault(); } }
+    else if (['ArrowLeft', 'PageUp'].indexOf(e.key) !== -1) { if (back()) { e.stopImmediatePropagation(); e.preventDefault(); } }
+  }, true);
+  paint();
 })();
 </script>
 </body>
