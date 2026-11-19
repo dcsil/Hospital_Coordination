@@ -291,6 +291,41 @@ a { color: var(--cx-accent); }
  .eta-visual img { max-height:28vh; }
 }
 </style>
+<style id="problem-css">
+.problem-slide { flex-direction: column; justify-content: flex-start; align-items: stretch; padding-top: clamp(1rem, 3vh, 2rem); }
+.problem-slide > * { max-width: 1320px; width: 100%; margin-left: auto; margin-right: auto; }
+.problem-top { padding-bottom: clamp(0.8rem, 2vh, 1.4rem); border-bottom: 2px solid #d6e0cc; margin-bottom: clamp(0.8rem, 2vh, 1.2rem); }
+.problem-top h2 { font-size: clamp(1.6rem, 3.6vh, 2.5rem); line-height: 1.2; margin-bottom: 0; }
+.problem-bottom { flex: 1; margin-top: clamp(1.2rem, 5vh, 3rem); }
+.compact table { font-size: clamp(1.05rem, 2.6vh, 1.4rem); }
+.compact th { padding: 0.7rem 0.9rem; font-size: 0.8rem; }
+.compact td { padding: clamp(0.5rem, 1.4vh, 0.85rem) 0.9rem; }
+.problem-bottom .legend { margin-top: 0.5rem; font-size: 0.85rem; }
+</style>
+<style id="route-anim">
+.slide.active .route-live { stroke-dashoffset: 0; animation: routeDash 1.2s linear infinite; }
+@keyframes routeDash { to { stroke-dashoffset: -24; } }
+.route-map { overflow: visible; }
+</style>
+<style id="light-fx">
+@keyframes fxRise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.slide.active .fx-rise { animation: fxRise 0.5s ease both; animation-delay: var(--d, 0s); }
+@keyframes fxPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(37, 90, 66, 0.35); } 50% { box-shadow: 0 0 0 8px rgba(37, 90, 66, 0); } }
+.slide.active .fx-pulse { animation: fxPulse 2s ease-out infinite; }
+.fx-bar { height: 5px; background: rgba(37, 90, 66, 0.12); border-radius: 4px; margin: 0.1rem 0 0.5rem; overflow: hidden; }
+.fx-bar span { display: block; height: 100%; width: 0; background: #255a42; border-radius: 4px; }
+@keyframes fxFill { from { width: 0; } to { width: var(--w); } }
+.slide.active .fx-bar span { animation: fxFill 1.4s ease-out both; animation-delay: var(--d, 0s); }
+</style>
+<style id="reveal-css">
+.reveal-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(0.7rem, 1.6vw, 1.2rem); align-items: stretch; height: 100%; min-height: 330px; }
+.tall-card { display: flex; flex-direction: column; gap: 0.5rem; padding: clamp(1rem, 2.4vh, 1.6rem); border-radius: 18px; background: #ffffff; border: 1px solid #d6e0cc; box-shadow: 0 6px 24px rgba(37,90,66,0.07); opacity: 0; transform: translateY(26px); transition: opacity 0.5s ease, transform 0.5s ease; }
+.tall-card.shown { opacity: 1; transform: none; }
+.tall-card.hi { background: linear-gradient(160deg, #eef8f2, #ffffff); border-color: #255a42; }
+.tall-card h3 { font-size: clamp(1.1rem, 2.4vh, 1.45rem); line-height: 1.25; color: #1e4a37; }
+.tall-card p { font-size: clamp(0.95rem, 2vh, 1.15rem); line-height: 1.45; }
+.tall-card .muted-tag { margin-top: auto; font-size: 0.95rem; color: #6c8576; }
+</style>
 </head>
 <body>
 <div class="deck">
@@ -314,8 +349,42 @@ a { color: var(--cx-accent); }
   <div class="legend" style="margin-top:2.2rem;font-size:0.85rem;letter-spacing:0.04em;">Azaria Kelman · Richard Xu</div>
 </div>
     </section>
+    <section class="slide problem-slide" data-presenter="Azaria · Richard">
+      <div class="problem-top">
+        <div class="kicker">The problem</div>
+        <h2>Inefficient communication between ambulance call centre operators, drivers and hospitals</h2>
+      </div>
+      <div class="problem-bottom">
+        <div class="reveal-row">
+          <div class="tall-card">
+            <div class="pill warm">Operator</div>
+            <h3>Decides and calls EMS</h3>
+            <p>Phone and radio check-ins with each hospital.</p>
+            <p class="muted-tag">No live view of ambulances en route.</p>
+          </div>
+          <div class="tall-card">
+            <div class="pill warm">Driver</div>
+            <h3>Chooses the hospital</h3>
+            <p>Relies on experience and a phone call to confirm beds.</p>
+            <p class="muted-tag">Status is often out of date.</p>
+          </div>
+          <div class="tall-card">
+            <div class="pill">Toronto</div>
+            <h3>Patient Destination Software</h3>
+            <p>A coordinator assigns a hospital by location, urgency and services.</p>
+            <p class="muted-tag">Misses ambulances already on the way. Offload tracked by radio.</p>
+          </div>
+          <div class="tall-card hi">
+            <div class="pill">Waypoint</div>
+            <h3>3 separate views</h3>
+            <p>One for drivers, one for call operators, one for hospitals.</p>
+            <p class="muted-tag">Live traffic not yet connected.</p>
+          </div>
+        </div>
+      </div>
+    </section>
     <section class="slide" data-presenter="Azaria · Richard">
-      <div class="kicker">Product overview</div>
+      <div class="kicker">Full solution</div>
 
 <div class="cols" style="grid-template-columns:repeat(3,1fr);">
   <div class="big-card clickable card-float" data-go="3"><span class="pill">Operator</span>
@@ -357,10 +426,10 @@ a { color: var(--cx-accent); }
     <div class="screen-bar"><span>Live operations</span><span>Unit 214</span></div>
     <div class="screen-body">
       <div class="field" style="margin-bottom:0.6rem;">Patient location: Harbour and 5th</div>
-      <div class="row-item best"><span><b>Sunnybrook</b><br><small>12 min travel · 18 min offload</small></span><span class="pill">Best</span></div>
-      <div class="row-item"><span><b>Michael Garron</b><br><small>3 min travel · 31 min offload</small></span><span></span></div>
-      <div class="row-item"><span><b>Toronto General</b><br><small>14 min travel · 23 min offload</small></span><span></span></div>
-      <div class="btn" style="margin-top:0.6rem;width:100%;">Send to driver: Sunnybrook</div>
+      <div class="row-item best fx-rise" style="--d:0.15s;"><span><b>Sunnybrook</b><br><small>12 min travel · 18 min offload</small></span><span class="pill">Best</span></div>
+      <div class="row-itemNone fx-rise" style="--d:0.27s;"><span><b>Michael Garron</b><br><small>3 min travel · 31 min offload</small></span><span></span></div>
+      <div class="row-itemNone fx-rise" style="--d:0.39s;"><span><b>Toronto General</b><br><small>14 min travel · 23 min offload</small></span><span></span></div>
+      <div class="btn fx-pulse" style="margin-top:0.6rem;width:100%;">Send to driver: Sunnybrook</div>
     </div>
   </div>
   <div class="big-card">
@@ -383,11 +452,22 @@ a { color: var(--cx-accent); }
     <div style="padding:1rem;">
       <div class="eta">12 min</div>
       <div class="hero-label">Estimated travel to the bay</div>
-      <svg viewBox="0 0 260 150" width="100%" style="margin-top:0.8rem;background:#f3f6ef;border-radius:12px;">
-        <path d="M30 120 H120 V60 H230" fill="none" stroke="#255a42" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="30" cy="120" r="9" fill="#1e3a2d"/>
-        <circle cx="230" cy="60" r="10" fill="#b03a2e"/>
-        <text x="230" y="46" text-anchor="middle" font-size="12" font-weight="700" fill="#1e3a2d">Sunnybrook</text>
+      <svg viewBox="0 0 260 150" width="100%" class="route-map" style="margin-top:0.8rem;background:#f3f6ef;border-radius:12px;">
+        <defs>
+          <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0 H0 V20" fill="none" stroke="#e1e8dc" stroke-width="1"/></pattern>
+        </defs>
+        <rect width="260" height="150" fill="url(#grid)"/>
+        <path id="drv-route" d="M30 120 H120 V60 H230" fill="none" stroke="#bccdad" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        <path class="route-live" d="M30 120 H120 V60 H230" fill="none" stroke="#255a42" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6 6"/>
+        <circle cx="30" cy="120" r="7" fill="#1e3a2d"/>
+        <g class="route-car">
+          <circle r="9" fill="#ffffff" stroke="#255a42" stroke-width="2.5"/>
+          <path d="M-4 0 H4 M0 -4 V4" stroke="#b03a2e" stroke-width="2.4" stroke-linecap="round"/>
+          <animateMotion dur="4.5s" repeatCount="indefinite" rotate="auto"><mpath href="#drv-route"/></animateMotion>
+        </g>
+        <circle cx="230" cy="60" r="11" fill="#b03a2e" opacity="0.18"/>
+        <circle cx="230" cy="60" r="6" fill="#b03a2e"/>
+        <text x="230" y="40" text-anchor="middle" font-size="12" font-weight="700" fill="#1e3a2d">Sunnybrook</text>
       </svg>
       <div class="row-item" style="margin-top:0.7rem;"><span><b>Turn right</b> onto Bayview</span><span>400 m</span></div>
       <div class="btn light" style="width:100%;margin-top:0.4rem;">Arrived</div>
@@ -410,8 +490,11 @@ a { color: var(--cx-accent); }
     <div class="screen-bar"><span>Sunnybrook · incoming</span><span>Bays free: 2</span></div>
     <div class="screen-body">
       <div class="row-item best"><span><b>Unit 214</b> · CTAS 2<br><small>Arrives in 12 min</small></span><span class="pill">Prepare bay</span></div>
+            <div class="fx-bar" style="--w:25%;--d:1.0s;"><span></span></div>
       <div class="row-item"><span><b>Unit 207</b> · CTAS 3<br><small>Arrives in 19 min</small></span><span class="pill warm">Inbound</span></div>
+            <div class="fx-bar" style="--w:50%;--d:1.25s;"><span></span></div>
       <div class="row-item"><span><b>Unit 231</b> · CTAS 4<br><small>Arrives in 31 min</small></span><span class="pill warm">Inbound</span></div>
+            <div class="fx-bar" style="--w:75%;--d:1.5s;"><span></span></div>
     </div>
   </div>
   <div class="big-card">
@@ -464,22 +547,7 @@ a { color: var(--cx-accent); }
       <p class="legend">Each person sees only what they need.</p>
     </section>
     
-    <section class="slide" data-presenter="Azaria · Richard">
-      <div class="kicker">Competitor analysis</div>
-<h2>Where we stand against each option</h2>
-<table>
-  <thead><tr><th>Capability</th><th>Baseline</th><th>PDS</th><th>Waypoint</th></tr></thead>
-  <tbody>
-    <tr><td>Recommends a hospital</td><td><span class="cross">✗</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
-    <tr><td>Counts ambulances already en route</td><td><span class="cross">✗</span></td><td><span class="cross">✗</span></td><td><span class="check">✓</span></td></tr>
-    <tr><td>Predicts offload time</td><td><span class="cross">✗</span></td><td><span class="muted-tag">Not verified</span></td><td><span class="check">✓</span> <span class="muted-tag">simulated</span></td></tr>
-    <tr><td>Uses live ER wait data</td><td><span class="cross">✗</span></td><td><span class="partial">Partial</span></td><td><span class="check">✓</span></td></tr>
-    <tr><td>Uses live traffic</td><td><span class="cross">✗</span></td><td><span class="muted-tag">Not verified</span></td><td><span class="cross">✗</span> <span class="muted-tag">planned</span></td></tr>
-    <tr><td>Dispatcher makes final choice</td><td><span class="check">✓</span></td><td><span class="muted-tag">Not verified</span></td><td><span class="check">✓</span></td></tr>
-  </tbody>
-</table>
-<p class="legend">PDS entries come from the Toronto Paramedic Association page and our Kelly interview.</p>
-    </section>
+    
     <section class="slide" data-presenter="Azaria · Richard">
       <div class="kicker">The core trade-off</div>
 <h2>Total time = travel + offload</h2>
@@ -493,8 +561,8 @@ a { color: var(--cx-accent); }
 <p class="legend" style="font-size:1.1rem;">Choosing the hospital changes both parts at once.</p>
     </section>
     <section class="slide eta-slide" data-presenter="Azaria · Richard" aria-labelledby="eta-title">
-      <div class="kicker">Why this is hard · Google Maps example</div>
-      <h2 id="eta-title">One ETA hides a network of predictions</h2>
+      <div class="kicker">Why this is hard</div>
+      <h2 id="eta-title">Google map example</h2>
       <div class="eta-layout">
         <figure class="eta-visual">
           <div class="eta-label">Behind the arrival time</div>
@@ -508,24 +576,19 @@ a { color: var(--cx-accent); }
         </div>
       </div>
       <div class="eta-takeaway"><b>The challenge:</b> predict conditions when you get there. Our hospital decision also adds offload and queues at the expected arrival time.</div>
-      <p class="eta-scope"><b>Current repo:</b> estimated travel + offload forecasts; active runs project simulated queues. Google Maps opens for navigation; Google Routes integration is planned.</p>
+      <p class="eta-scope"><b>Current repo:</b> estimated travel + offload forecasts; active runs project simulated queues. Google Maps opens for navigation; Google Routes integration is not yet connected.</p>
       <p class="eta-sources">Published approach (2020): <a href="https://blog.google/products-and-platforms/products/maps/google-maps-101-how-ai-helps-predict-traffic-and-determine-routes/" target="_blank" rel="noopener noreferrer">Google Maps: traffic &amp; routing</a> · <a href="https://deepmind.google/blog/traffic-prediction-with-advanced-graph-neural-networks/" target="_blank" rel="noopener noreferrer">DeepMind: graph neural networks</a></p>
     </section>
     <section class="slide" data-presenter="Azaria · Richard">
       <div class="kicker">Our competitor · Patient Destination Software</div>
-      <h2>PDS helps assign a hospital. The queue can change en route.</h2>
-      <div class="cols">
-        <div class="big-card">
-          <h3>How Toronto uses PDS</h3>
-          <p>A destination coordinator monitors hospital status and uses PDS to assign a hospital based on the crew’s location, the urgency of the patient’s condition and the services they need.</p>
-        </div>
-        <div class="big-card hi">
-          <h3>Where the recommendation can fall short</h3>
-          <p>In our interview, Kelly described outdated status information and unexpected simultaneous arrivals. Two crews can head toward the same available hospital and find a queue when they arrive.</p>
-        </div>
+      <h2>Assigns hospitals, but cannot see the queue en route</h2>
+      <div class="cols" style="grid-template-columns:repeat(3,1fr);">
+        <div class="big-card"><div class="pill">Use</div><p style="margin-top:0.6rem;">A coordinator assigns hospitals by location, urgency and services.</p></div>
+        <div class="big-card"><div class="pill warm">Gap 1</div><p style="margin-top:0.6rem;">Status can be outdated. Misses ambulances already on the way.</p></div>
+        <div class="big-card"><div class="pill warm">Gap 2</div><p style="margin-top:0.6rem;">Offload status is tracked by radio or phone, not in the tool.</p></div>
       </div>
-      <p class="legend">Waypoint addresses this gap by using inbound ambulances to estimate the handover queue at arrival in its simulator.</p>
-      <p class="legend">Sources include the <a href="https://www.torontoparamedic.com/communications/" target="_blank" rel="noopener noreferrer">Toronto Paramedic Association</a> and our interview with Kelly.</p>
+      <p class="legend">Waypoint counts inbound ambulances to predict the queue at arrival.</p>
+      <p class="legend">Sources: <a href="https://www.torontoparamedic.com/communications/" target="_blank" rel="noopener noreferrer">Toronto Paramedic Association</a>, Kelly interview.</p>
     </section>
     <section class="slide" data-presenter="Azaria · Richard">
       <div class="kicker">Ambulance offload prediction</div>
@@ -535,14 +598,11 @@ a { color: var(--cx-accent); }
         <div class="big-card">
           <h3>Training data</h3>
           <div class="big">36,774 records</div>
-          <p>We trained on 31,505 offloads, tuned on 5,269 more, then fit the final model on both groups.</p>
           <p class="legend">Source dataset of 50,000 offloads across 11 Sacramento County hospitals.</p>
         </div>
         <div class="big-card hi">
           <h3>Performance on 7,802 held-out cases</h3>
           <div class="big">18.43 min</div>
-          <p>Average absolute prediction error on Sacramento offloads from January through October 2022.</p>
-          <p class="legend">Using each hospital’s historical average gave an error of 18.72 min.</p>
         </div>
       </div>
       <p class="legend"><b>The model reduced average absolute error by 0.29 minutes per case</b> (about 17 seconds). Toronto accuracy still needs local validation.</p>
@@ -554,7 +614,7 @@ a { color: var(--cx-accent); }
         <thead><tr><th scope="col">Policy</th><th scope="col">How the destination is chosen</th><th scope="col">Improvement</th></tr></thead>
         <tbody>
           <tr><th scope="row">Baseline</th><td>Choose the nearest eligible hospital.</td><td><strong>0%</strong> (reference)</td></tr>
-          <tr><th scope="row">PDS</th><td>Use the PDS hospital recommendation.</td><td><strong>30%</strong></td></tr>
+          <tr><th scope="row">Patient Destination Software</th><td>Use the Patient Destination Software hospital recommendation.</td><td><strong>30%</strong></td></tr>
           <tr><th scope="row">Waypoint</th><td>Rank eligible hospitals by estimated travel time plus predicted offload time.</td><td><strong>66%</strong></td></tr>
         </tbody>
       </table>
@@ -570,7 +630,7 @@ a { color: var(--cx-accent); }
         <div class="box">Dashboard<br><small>Recommendation and range</small></div>
       </div>
       <table style="margin-top:1.4rem;">
-        <thead><tr><th>Offload prediction</th><th>Baseline (hospital average)</th><th>PDS</th><th>Waypoint model</th></tr></thead>
+        <thead><tr><th>Offload prediction</th><th>Baseline (hospital average)</th><th>Patient Destination Software</th><th>Waypoint model</th></tr></thead>
         <tbody>
           <tr><td>Mean absolute error</td><td>18.7 min</td><td><span class="muted-tag">Not tested</span></td><td><b>18.4 min</b></td></tr>
           <tr><td>Central 80% range coverage</td><td>n/a</td><td><span class="muted-tag">Not tested</span></td><td><b>81%</b></td></tr>
@@ -580,6 +640,31 @@ a { color: var(--cx-accent); }
       <p class="legend">Small gain over the baseline. Toronto performance is unvalidated.</p></section>
     <section class="slide" data-presenter="Azaria · Richard">
       <iframe class="live-frame" style="height:86vh;" src="http://127.0.0.1:5173/#operations" title="Waypoint live app" loading="eager"></iframe>
+    </section>
+    <section class="slide" data-presenter="Azaria · Richard">
+      <div class="kicker">What changed since last week</div>
+      <h2>Three views, live traffic next, a stronger model</h2>
+      <div style="display:grid;grid-template-columns:repeat(3,clamp(170px,22vh,230px));justify-content:center;gap:1rem;margin-top:0.8rem;">
+        <div class="big-card" style="aspect-ratio:1/1;padding:1rem;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;">
+          <div class="pill">View 1</div>
+          <h3 style="margin-top:0.8rem;">Operator</h3>
+          <p style="font-size:0.95rem;">Enter the location, choose a hospital, send it to the driver.</p>
+        </div>
+        <div class="big-card" style="aspect-ratio:1/1;padding:1rem;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;">
+          <div class="pill">View 2</div>
+          <h3 style="margin-top:0.8rem;">Driver</h3>
+          <p style="font-size:0.95rem;">See the destination, directions and arrival time.</p>
+        </div>
+        <div class="big-card hi" style="aspect-ratio:1/1;padding:1rem;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;">
+          <div class="pill">View 3</div>
+          <h3 style="margin-top:0.8rem;">Hospital</h3>
+          <p style="font-size:0.95rem;">See ambulances on the way and prepare the bay.</p>
+        </div>
+      </div>
+      <div class="cols" style="margin-top:1rem;">
+        <div class="big-card"><span class="pill warm">Next</span><p style="margin-top:0.6rem;"><b>Live traffic:</b> the travel leg will use live road data. Not yet connected.</p></div>
+        <div class="big-card hi"><span class="pill">Merged</span><p style="margin-top:0.6rem;"><b>Improved model:</b> regression model on main (PR #22), a 0.29 min gain in the Sacramento test.</p></div>
+      </div>
     </section>
     <section class="slide" data-presenter="Azaria · Richard">
       <div class="cols" style="grid-template-columns:1fr 1fr;align-items:center;">
@@ -742,9 +827,9 @@ renderTimer();
 // A6: route-style progress bar with an ambulance, one stop per section
 (function () {
   var stops = [
-    { name: 'Product', start: 2 },
-    { name: 'Efficiency', start: 6 },
-    { name: 'Competitors', start: 7 },
+    { name: 'Problem', start: 2 },
+    { name: 'Product', start: 3 },
+    { name: 'Efficiency', start: 7 },
     { name: 'Model', start: 8 },
     { name: 'Next steps', start: 13 }
   ];
@@ -784,6 +869,38 @@ renderTimer();
   var obs = new MutationObserver(update);
   slides.forEach(function (s) { obs.observe(s, { attributes: true, attributeFilter: ['class'] }); });
   update();
+})();
+</script>
+<script id="reveal-js">
+(function () {
+  var cards = function () { return Array.from(document.querySelectorAll('.problem-slide .tall-card')); };
+  var shown = 0;
+  function isProblem() { var a = document.querySelector('.slide.active'); return a && a.classList.contains('problem-slide'); }
+  function paint() { cards().forEach(function (c, i) { c.classList.toggle('shown', i < shown); }); }
+  function forward() { var n = cards().length; if (shown < n) { shown++; paint(); return true; } return false; }
+  function back() { if (shown > 0) { shown--; paint(); return true; } return false; }
+  // when the problem slide comes into view, reset (from title) or show all (from later slides)
+  var last = -1;
+  var obs = new MutationObserver(function () {
+    var all = Array.from(document.querySelectorAll('.slide'));
+    var idx = all.findIndex(function (s) { return s.classList.contains('active'); });
+    if (idx === 1 && last !== 1) { shown = (last > 1) ? cards().length : 0; paint(); }
+    last = idx;
+  });
+  Array.from(document.querySelectorAll('.slide')).forEach(function (s) { obs.observe(s, { attributes: true, attributeFilter: ['class'] }); });
+  document.addEventListener('click', function (e) {
+    if (!isProblem()) return;
+    var t = e.target.closest && e.target.closest('#next');
+    if (t && forward()) { e.stopImmediatePropagation(); e.preventDefault(); }
+    var pv = e.target.closest && e.target.closest('#prev');
+    if (pv && back()) { e.stopImmediatePropagation(); e.preventDefault(); }
+  }, true);
+  document.addEventListener('keydown', function (e) {
+    if (!isProblem()) return;
+    if (['ArrowRight', 'PageDown', ' '].indexOf(e.key) !== -1) { if (forward()) { e.stopImmediatePropagation(); e.preventDefault(); } }
+    else if (['ArrowLeft', 'PageUp'].indexOf(e.key) !== -1) { if (back()) { e.stopImmediatePropagation(); e.preventDefault(); } }
+  }, true);
+  paint();
 })();
 </script>
 </body>
