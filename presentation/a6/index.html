@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%229%22%20fill%3D%22%23285b43%22%2F%3E%3Cpath%20d%3D%22M5%2017h6l3-8%205%2015%203-7h5%22%20fill%3D%22none%22%20stroke%3D%22%23e7edce%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E">
+  <title>Waypoint: Competitive Review and Gap Analysis (Demo 3)</title>
+  <style>
+/* Green palette from the Hospital_Coordination app (ambulance-flow). */
+:root {
+  --cx-bg: #f7f7f4;
+  --cx-bar: rgba(251, 251, 248, 0.92);
+  --cx-surface: #ffffff;
+  --cx-surface-2: #eef2ea;
+  --cx-border: #e1e6dc;
+  --cx-border-strong: #bccdad;
+  --cx-text: #1e3a2d;
+  --cx-muted: #6c8576;
+  --cx-accent: #255a42;
+  --cx-great: #2f7d55;
+  --cx-moderate: #b4781b;
+  --cx-severe: #b03a2e;
+  --cx-radius: 14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body { font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.5; color: var(--cx-text); background: var(--cx-bg); }
+.deck { position: fixed; inset: 0; display: grid; grid-template-rows: auto 1fr auto; }
+.bg { position: absolute; inset: 0; z-index: -1; pointer-events: none; }
+.bg::before { content: ""; position: absolute; inset: 0; background-image: radial-gradient(rgba(37, 90, 66, 0.07) 1px, transparent 1px); background-size: 28px 28px; mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%); }
+
+.top { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--cx-border); background: var(--cx-bar); }
+.brand { display: flex; align-items: center; gap: 0.6rem; white-space: nowrap; }
+.brand .mark { width: 28px; height: 28px; border-radius: 8px; background: var(--cx-accent); }
+.brand b { font-size: 1.05rem; letter-spacing: -0.01em; }
+.brand small { color: var(--cx-muted); font-size: 0.8rem; }
+.top .spacer { flex: 1; }
+.top .meta { font-size: 0.82rem; color: var(--cx-muted); }
+
+.stage { position: relative; overflow: hidden; }
+.slide { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; padding: clamp(0.6rem, 2vh, 2rem) 1.5rem; overflow-y: auto; }
+.slide.active { display: flex; animation: enter 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); }
+@keyframes enter { from { opacity: 0; transform: translateY(12px); } }
+.slide > * { width: 100%; max-width: 1320px; }
+
+.kicker { font-size: 1.05rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--cx-accent); margin-bottom: 0.35rem; }
+h1 { font-size: clamp(2.2rem, 7vh, 4.2rem); line-height: 1.15; letter-spacing: -0.015em; margin-bottom: 1rem; }
+h2 { font-size: clamp(1.7rem, 4.2vh, 3rem); line-height: 1.2; letter-spacing: -0.015em; margin-bottom: 1.5rem; }
+h3 { font-size: 1.6rem; margin-bottom: 0.5rem; }
+p, li { font-size: clamp(1.1rem, 2.5vh, 1.6rem); line-height: 1.45; }
+ul, ol { padding-left: 1.8rem; }
+li { margin-bottom: clamp(0.3rem, 1vh, 0.9rem); }
+.muted { color: var(--cx-muted); font-size: 1.25rem; margin-top: 1.6rem; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.card { padding: clamp(0.9rem, 2.4vh, 2rem) clamp(1rem, 2vw, 2.2rem); border: 1px solid var(--cx-border); border-radius: var(--cx-radius); background: var(--cx-surface); }
+.big { font-size: clamp(2rem, 5vh, 4rem); font-weight: 700; color: var(--cx-accent); letter-spacing: -0.02em; }
+.tag { display: inline-block; font-size: 0.95rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.2rem 0.6rem; border-radius: 999px; margin-right: 0.4rem; vertical-align: middle; }
+.tag.done { background: #e4ebdb; color: var(--cx-great); }
+.tag.plan { background: #f8efdd; color: #7a5413; }
+.tag.fail { background: #fde8e8; color: var(--cx-severe); }
+table { width: 100%; border-collapse: collapse; font-size: clamp(0.95rem, 2.2vh, 1.3rem); background: var(--cx-surface); border: 1px solid var(--cx-border); border-radius: var(--cx-radius); overflow: hidden; }
+th { text-align: left; font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--cx-muted); padding: 1rem 1.1rem; background: var(--cx-surface-2); }
+td { padding: clamp(0.35rem, 1vh, 0.9rem) clamp(0.6rem, 1vw, 1.1rem); border-top: 1px solid var(--cx-border); vertical-align: top; }
+.placeholder { border: 2px dashed #b4781b; border-radius: var(--cx-radius); background: #fffaf0; padding: 3.5rem; text-align: center; color: #7a5413; font-size: 1.5rem; }
+a { color: var(--cx-accent); }
+
+.bottom { display: flex; align-items: center; gap: 1rem; padding: 0.6rem 1.25rem; border-top: 1px solid var(--cx-border); background: var(--cx-bar); }
+.progress { flex: 1; height: 3px; border-radius: 3px; background: rgba(37, 90, 66, 0.1); overflow: hidden; }
+.progress span { display: block; height: 100%; background: var(--cx-accent); transition: width 0.4s ease; }
+.count { font-size: 0.85rem; color: var(--cx-muted); min-width: 4.5rem; text-align: center; }
+.nav-btn { width: 2.5rem; height: 2.5rem; border-radius: 50%; border: 1px solid var(--cx-border-strong); background: var(--cx-surface); font-size: 1.1rem; cursor: pointer; }
+.nav-btn:hover { border-color: var(--cx-accent); }
+.nav-btn:disabled { opacity: 0.3; cursor: default; }
+.hint { font-size: 0.78rem; color: var(--cx-muted); }
+@media (max-width: 800px) { .cols { grid-template-columns: 1fr; } .hint { display: none; } }
+
+.timer { display: flex; align-items: center; gap: 0.6rem; padding: 0.35rem 0.8rem; border: 1px solid var(--cx-border-strong); border-radius: 999px; background: var(--cx-surface); cursor: pointer; user-select: none; }
+.timer-phase { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--cx-muted); }
+.timer-time { font-family: Consolas, monospace; font-size: 1.05rem; font-weight: 700; color: var(--cx-accent); font-variant-numeric: tabular-nums; }
+.timer-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cx-border-strong); }
+.timer.is-on .timer-dot { background: var(--cx-great); }
+.timer.is-warn .timer-time { color: var(--cx-moderate); }
+.timer.is-done .timer-time { color: var(--cx-severe); }
+
+.live-frame { width: 100%; height: 62vh; border: 1px solid var(--cx-border); border-radius: var(--cx-radius); background: #fff; }
+
+.flow { display: flex; align-items: stretch; gap: 0.5rem; flex-wrap: wrap; justify-content: center; }
+.box { flex: 1; min-width: 150px; border: 1px solid var(--cx-border-strong); border-radius: var(--cx-radius); background: var(--cx-surface); padding: 1rem; font-size: clamp(0.95rem, 2vh, 1.2rem); }
+.box.hi { border-color: var(--cx-accent); background: #eef8f2; }
+.arrow { align-self: center; font-size: 1.6rem; color: var(--cx-muted); }
+.formula { font-family: Consolas, monospace; font-size: clamp(1.1rem, 2.8vh, 1.7rem); background: var(--cx-surface-2); border: 1px solid var(--cx-border); border-radius: var(--cx-radius); padding: 1rem; text-align: center; }
+.bars { display: grid; gap: 0.5rem; }
+.bar-row { display: grid; grid-template-columns: 14rem 1fr 3rem; align-items: center; gap: 0.8rem; font-size: clamp(0.95rem, 2.2vh, 1.2rem); }
+.bar { height: 1.1rem; background: var(--cx-accent); border-radius: 4px; }
+
+
+/* Diagram-first technical slides (4, 6-9). */
+.arch-stack { display:flex; flex-direction:column; align-items:center; gap:clamp(0.35rem,1vh,0.7rem); max-width:1140px; margin:0 auto; }
+.arch-inputs { width:100%; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(0.5rem,1.5vw,1.25rem); }
+.arch-node { border-radius:15px; border:1.5px solid var(--cx-border-strong); background:white; padding:clamp(0.6rem,1.3vh,1.1rem) 0.7rem; text-align:center; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:0.2rem; min-height:82px; }
+.arch-node strong { font-size:clamp(1.1rem,2.3vh,1.6rem); line-height:1.2; }
+.arch-node small { font-size:clamp(0.7rem,1.35vh,0.88rem); font-weight:750; letter-spacing:0.06em; color:var(--cx-muted); text-transform:uppercase; }
+.arch-node.source-1 { border-top:6px solid #6b8d76; }
+.arch-node.source-2 { border-top:6px solid #29886e; }
+.arch-node.source-3 { border-top:6px solid #b4781b; }
+.arch-connector-three { width:100%; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; text-align:center; color:var(--cx-muted); font-size:clamp(1.15rem,2.9vh,2rem); line-height:1; }
+.arch-down { color:var(--cx-muted); font-size:clamp(1.15rem,2.9vh,2rem); line-height:1; }
+.arch-process { width:min(75%,770px); border:1px solid var(--cx-border-strong); background:var(--cx-surface-2); min-height:56px; }
+.arch-predict { width:min(75%,770px); min-height:78px; border:2px solid var(--cx-accent); background:#e3f1e8; box-shadow:0 4px 16px rgba(37,90,66,0.11); }
+.arch-predict strong { color:var(--cx-accent); font-size:clamp(1.35rem,2.8vh,2rem); }
+.arch-output { width:100%; display:grid; grid-template-columns:1fr auto 1fr; gap:0.8rem; align-items:center; }
+.arch-output .arch-node { min-height:76px; }
+.arch-output .arch-horizontal { font-size:2rem; color:var(--cx-muted); }
+.formula-hero { background:var(--cx-surface-2); border:2px solid var(--cx-border-strong); border-radius:20px; padding:clamp(2rem,6vh,5rem) clamp(0.8rem,2.5vw,2.5rem); text-align:center; }
+.formula-large { font-family:Consolas,'SFMono-Regular',monospace; font-size:clamp(1.55rem,3.06vw,3.35rem); font-weight:700; letter-spacing:-0.055em; line-height:1.5; white-space:nowrap; }
+.formula-large sub,.eq-main sub,.calculation sub { font-size:0.57em; vertical-align:-0.28em; }
+.formula-example { margin:1.3rem auto 0; font-family:Consolas,monospace; font-weight:700; font-size:clamp(1.6rem,3.5vw,3rem); text-align:center; color:var(--cx-accent); }
+.formula-example small { display:block; font:700 0.35em system-ui,sans-serif; letter-spacing:0.14em; color:var(--cx-muted); text-transform:uppercase; margin-bottom:0.5rem; }
+.congestion-panel { display:flex; flex-direction:column; align-items:center; gap:clamp(0.7rem,2vh,1.6rem); max-width:1080px; margin:0 auto; }
+.congestion-vars { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; width:100%; }
+.congestion-var { background:#fff; border:2px solid var(--cx-border-strong); border-radius:18px; padding:clamp(1rem,2.5vh,1.8rem); text-align:center; }
+.congestion-var.live { border-color:#2f7d55; background:#f2faf5; }
+.congestion-tag { display:inline-block; font-size:clamp(0.75rem,1.35vh,0.95rem); text-transform:uppercase; font-weight:800; letter-spacing:0.12em; color:var(--cx-muted); }
+.congestion-var.live .congestion-tag { color:#24734c; }
+.congestion-symbol { display:block; font-family:Consolas,monospace; font-weight:750; font-size:clamp(1.3rem,2.7vw,2.3rem); }
+.congestion-number { display:block; font-size:clamp(2.2rem,5vh,4.5rem); font-weight:800; line-height:1.2; color:var(--cx-accent); }
+.congestion-math { width:100%; padding:clamp(1.0rem,2.6vh,1.8rem); background:var(--cx-surface-2); border-radius:18px; border:1px solid var(--cx-border-strong); text-align:center; }
+.eq-main { font-family:Consolas,monospace; font-weight:700; font-size:clamp(1.5rem,2.75vw,2.85rem); line-height:1.7; }
+.eq-compute { font-family:Consolas,monospace; font-size:clamp(1.35rem,2.6vw,2.5rem); font-weight:700; color:var(--cx-accent); margin-top:0.15rem; }
+.congestion-note { text-align:center; color:var(--cx-muted); font-size:clamp(0.83rem,1.65vh,1.1rem); }
+@media(max-width:850px) {
+ .arch-node strong { font-size:1.0rem; }
+ .arch-node small { font-size:0.62rem; }
+ .arch-predict strong { font-size:1.25rem; }
+ .formula-large { font-size:2.8vw; }
+ .congestion-vars { gap:0.6rem; }
+ .eq-main { font-size:2.8vw; }
+}
+
+  
+
+/* A minimal three-stage queue story instead of tables or equations. */
+.queue-story { display:grid; grid-template-columns:1fr auto 1fr auto 1fr; align-items:center; gap:clamp(0.35rem,1vw,1.2rem); width:100%; max-width:1190px; margin:0 auto; }
+
+.queue-stage { min-height:220px; border:2px solid var(--cx-border-strong); border-radius:20px; background:#fff; padding:clamp(1rem,3vh,2.2rem) 0.9rem; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:0.6rem; }
+
+.queue-stage:nth-of-type(3) { background:#ecf6ef; border-color:#78aa8a; }
+
+.queue-symbol { font-size:clamp(2.4rem,5.2vh,4.5rem); line-height:1; }
+
+.queue-stage strong { font-size:clamp(1.3rem,2.7vh,2rem); }
+
+.queue-stage small { font-size:clamp(0.98rem,1.85vh,1.35rem); color:var(--cx-muted); }
+
+.queue-arrow { font-size:clamp(1.8rem,3vh,2.7rem); color:var(--cx-muted); }
+
+.queue-keyline { width:100%; max-width:1100px; margin:2rem auto 0; padding:1.25rem 1.4rem; border-radius:16px; background:var(--cx-surface-2); text-align:center; font-size:clamp(1.3rem,2.7vh,2rem); font-weight:750; }
+
+.queue-subnote { text-align:center; font-size:clamp(0.83rem,1.6vh,1.05rem); color:var(--cx-muted); margin-top:0.85rem; }
+
+ .queue-story { gap:0.3rem; }
+ .queue-stage { min-height:175px; padding:0.75rem 0.35rem; }
+
+ .queue-stage strong { font-size:1rem; }
+ .queue-stage small { font-size:0.79rem; }
+
+
+
+  
+/* Technical decision overview: two real-data-informed time estimates. */
+.decision-diagram { width:100%; max-width:1160px; display:flex; flex-direction:column; align-items:center; gap:clamp(0.4rem,1.1vh,0.8rem); margin:0 auto; }
+
+.decision-inputs { width:100%; display:grid; grid-template-columns:1fr 1fr; gap:clamp(1rem,3vw,2.4rem); }
+
+.decision-column { display:flex; flex-direction:column; align-items:center; gap:clamp(0.35rem,0.8vh,0.65rem); min-width:0; }
+
+.decision-data { width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; min-height:92px; padding:0.9rem; background:#fff; border:2px solid var(--cx-border-strong); border-top:6px solid #79a38b; border-radius:16px; gap:0.15rem; }
+
+.decision-data--offload { border-top-color:#2f7d55; }
+
+.decision-data b { font-size:clamp(1.25rem,2.8vh,1.85rem); line-height:1.2; }
+
+.decision-data small { font-size:clamp(0.78rem,1.65vh,1.05rem); color:var(--cx-muted); }
+
+.decision-arr { font-size:2rem; color:var(--cx-muted); line-height:1; }
+
+.decision-measure { width:100%; min-height:90px; border-radius:16px; background:#eef2ea; border:2px solid #93b5a3; display:flex; align-items:center; justify-content:center; text-align:center; padding:1rem; font-size:clamp(1.5rem,3.3vh,2.35rem); font-weight:800; }
+
+.decision-join { width:55%; display:flex; justify-content:space-between; color:var(--cx-muted); font-size:clamp(2rem,4vh,3rem); line-height:1; margin-top:-0.1rem; }
+
+.decision-total { width:min(83%,930px); display:flex; align-items:center; justify-content:center; flex-direction:column; gap:0.18rem; padding:clamp(1rem,2.4vh,1.7rem); background:#dff0e5; border:2px solid var(--cx-accent); border-radius:18px; box-shadow:0 5px 20px rgba(37,90,66,0.09); }
+
+.decision-total strong { font-size:clamp(1.7rem,4.2vh,3.0rem); color:var(--cx-accent); }
+
+.decision-total small { font-size:clamp(1.0rem,2.0vh,1.4rem); color:var(--cx-muted); font-weight:700; }
+
+.decision-result { background:var(--cx-accent); color:#fff; border-radius:14px; width:min(80%,860px); padding:clamp(0.9rem,2vh,1.3rem); text-align:center; font-weight:750; font-size:clamp(1.35rem,2.85vh,2rem); }
+
+.decision-note { text-align:center; font-size:clamp(0.85rem,1.5vh,1rem); color:var(--cx-muted); margin-top:0.35rem; }
+
+ .decision-data b { font-size:1.03rem; }
+ .decision-measure { font-size:1.15rem; min-height:66px; }
+
+ .decision-total strong { font-size:1.35rem; }
+ .decision-result { font-size:1rem; }
+
+/* A6 additions */
+.check { color: #2f7d55; font-weight: 800; }
+.cross { color: #b03a2e; font-weight: 800; }
+.partial { color: #b4781b; font-weight: 700; }
+.muted-tag { color: #6c8576; font-size: 0.9em; }
+.hero-stat { font-family: Georgia, serif; font-size: clamp(2.4rem, 6vh, 4rem); color: #255a42; line-height: 1; }
+.hero-label { font-size: clamp(0.95rem, 2vh, 1.2rem); color: #6c8576; margin-top: 0.4rem; }
+.pill { display: inline-block; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.25rem 0.7rem; border-radius: 999px; background: #e4ebdb; color: #255a42; }
+.pill.warm { background: #f8efdd; color: #7a5413; }
+.pill.red { background: #fde8e8; color: #b03a2e; }
+.col-title { font-size: clamp(1.1rem, 2.6vh, 1.5rem); font-weight: 700; margin-bottom: 0.5rem; color: #1e4a37; }
+.stack { display: grid; gap: clamp(0.5rem, 1.4vh, 1rem); }
+.big-card { padding: clamp(1rem, 2.8vh, 1.8rem); border-radius: 18px; background: #ffffff; border: 1px solid #d6e0cc; box-shadow: 0 6px 24px rgba(37, 90, 66, 0.07); }
+.big-card.hi { background: linear-gradient(160deg, #eef8f2, #ffffff); border-color: #255a42; }
+.big-card.clickable { cursor: pointer; transition: transform .2s, box-shadow .2s; }
+.big-card.clickable:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(37, 90, 66, 0.15); }
+.legend { font-size: 0.95rem; color: #6c8576; margin-top: 0.8rem; }
+.crumb { font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: #6c8576; }
+.crumb b { color: #255a42; }
+/* zoom transition into each product view */
+.slide.zoom.active { animation: zoomIn 0.7s cubic-bezier(0.2, 0.7, 0.2, 1); }
+@keyframes zoomIn { from { opacity: 0; transform: scale(0.72); } to { opacity: 1; transform: scale(1); } }
+/* presenter label above the slide counter */
+.count { display: flex; flex-direction: column; align-items: center; line-height: 1.1; min-width: 6rem; }
+.presenter { font-size: 0.75rem; font-weight: 400; letter-spacing: 0; text-transform: none; color: #6c8576; margin-top: 2px; }
+/* product mock screens */
+.screen { background: #fbfbf8; border: 1px solid #d6e0cc; border-radius: 18px; overflow: hidden; box-shadow: 0 10px 34px rgba(37, 90, 66, 0.12); }
+.screen-bar { background: #255a42; color: #fff; padding: 0.55rem 0.9rem; font-size: 0.85rem; font-weight: 700; display: flex; justify-content: space-between; }
+.screen-body { padding: 0.9rem; }
+.field { border: 1px solid #bccdad; background: #fff; border-radius: 10px; padding: 0.55rem 0.7rem; font-size: 0.95rem; color: #1e3a2d; }
+.btn { display: inline-block; background: #255a42; color: #fff; border-radius: 10px; padding: 0.6rem 0.9rem; font-weight: 700; font-size: 0.95rem; text-align: center; }
+.btn.light { background: #fff; color: #255a42; border: 1px solid #255a42; }
+.row-item { display: flex; justify-content: space-between; align-items: center; border: 1px solid #d6e0cc; background: #fff; border-radius: 10px; padding: 0.5rem 0.7rem; font-size: 0.92rem; margin-bottom: 0.4rem; }
+.row-item.best { border: 2px solid #255a42; background: #eef8f2; }
+.phone { width: 300px; height: 520px; border: 10px solid #1e3a2d; border-radius: 36px; background: #fbfbf8; overflow: hidden; margin: 0 auto; box-shadow: 0 14px 40px rgba(30, 58, 45, 0.25); }
+.phone-top { background: #255a42; color: #fff; padding: 1rem 1rem 0.9rem; }
+.phone-top b { font-size: 1.15rem; }
+.eta { font-family: Georgia, serif; font-size: 2.4rem; color: #255a42; line-height: 1; }
+</style>
+<style id="route-theme">
+.route { position: relative; flex: 1; height: 60px; margin: 0 1rem; }
+.route-track { position: absolute; left: 0; right: 0; top: 24px; height: 5px; background: rgba(37,90,66,0.14); border-radius: 5px; }
+.route-fill { position: absolute; left: 0; top: 0; height: 100%; width: 0; background: linear-gradient(90deg, #255a42, #2f7d55); border-radius: 5px; transition: width 0.5s ease; }
+.route-stop { position: absolute; top: 16px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: #ffffff; border: 3px solid #b6c9b0; transition: all .3s; }
+.route-stop.on { background: #255a42; border-color: #255a42; box-shadow: 0 0 0 5px rgba(37,90,66,0.15); }
+.route-label { position: absolute; top: 40px; transform: translateX(-50%); font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #6c8576; white-space: nowrap; }
+.route-label.on { color: #255a42; }
+.route-amb { position: absolute; top: -4px; width: 44px; margin-left: -22px; transition: left 0.5s ease; filter: drop-shadow(0 3px 6px rgba(30,58,45,0.25)); }
+</style>
+<style id="split-css">
+.split { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: center; gap: 0.6rem; margin-top: 0.8rem; }
+.split .screen { font-size: 0.82rem; }
+.split .screen-bar { font-size: 0.8rem; padding: 0.45rem 0.7rem; }
+.split .screen-body { padding: 0.6rem; }
+.split .row-item { font-size: 0.8rem; padding: 0.35rem 0.5rem; }
+.split .btn { font-size: 0.8rem; padding: 0.4rem 0.6rem; }
+.msg-arrow { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; min-width: 110px; }
+.msg-arrow .msg-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; color: #255a42; text-align: center; }
+.msg-arrow .msg-line { position: relative; width: 100%; height: 3px; background: #255a42; border-radius: 3px; }
+.msg-arrow .msg-line::after { content: ""; position: absolute; right: -2px; top: -5px; border-left: 9px solid #255a42; border-top: 6px solid transparent; border-bottom: 6px solid transparent; }
+.msg-arrow .msg-note { font-size: 0.7rem; color: #6c8576; text-align: center; }
+</style>
+<style id="float-icons">
+.card-float { position: relative; padding-bottom: 2.6rem; overflow: visible; }
+.card-ico { position: absolute; right: 18px; bottom: -44px; opacity: 0.55; pointer-events: none; filter: drop-shadow(0 6px 10px rgba(37,90,66,0.12)); }
+</style>
+</head>
+<body>
+<div class="deck">
+  <div class="bg"></div>
+  <header class="top">
+    <div class="brand"><svg class="mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32"><rect width="32" height="32" rx="9" fill="#285b43"/><path d="M5 17h6l3-8 5 15 3-7h5" fill="none" stroke="#e7edce" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>waypoint</b></div></div>
+    <div class="spacer"></div>
+    <div class="timer" id="timer" title="Click to start or pause. R to reset.">
+      <span class="timer-phase" id="timer-phase">Presentation</span>
+      <span class="timer-time" id="timer-time">10:00</span>
+      <span class="timer-dot" id="timer-dot"></span>
+    </div>
+  </header>
+
+  <main class="stage" id="stage">
+    <section class="slide active" data-presenter="Azaria · Richard">
+      <div class="title-hero" style="text-align:left;">
+  <div class="kicker">Competitive review and gap analysis</div>
+  <h1>Waypoint</h1>
+  <p style="font-size:clamp(1.6rem,3.6vh,2.4rem);">Right hospital, faster handover</p>
+  <div class="legend" style="margin-top:2.2rem;font-size:0.85rem;letter-spacing:0.04em;">Azaria Kelman · Richard Xu</div>
+</div>
+    </section>
+    <section class="slide" data-presenter="Azaria · Richard">
+      <div class="kicker">Product overview</div>
+
+<div class="cols" style="grid-template-columns:repeat(3,1fr);">
+  <div class="big-card clickable card-float" data-go="3"><span class="pill">Operator</span>
+    <div class="col-title" style="margin-top:0.8rem;">Ambulance operator</div>
+    <p>Enters the location, sees ranked hospitals and tells the driver where to go.</p>
+    <svg viewBox="0 0 64 40" width="120" height="75" aria-hidden="true" class="card-ico">
+  <path d="M8 32 C 20 10, 38 36, 50 14" fill="none" stroke="#255a42" stroke-width="2.4" stroke-dasharray="4 4" stroke-linecap="round"/>
+  <circle cx="8" cy="32" r="3.5" fill="#255a42"/>
+  <path d="M52 2 a7 7 0 0 1 7 7 c0 6 -7 13 -7 13 s-7 -7 -7 -13 a7 7 0 0 1 7 -7z" fill="#255a42"/>
+  <circle cx="52" cy="9" r="2.6" fill="#f7f7f4"/>
+</svg>
+  </div>
+  <div class="big-card clickable card-float" data-go="4"><span class="pill">Driver</span>
+    <div class="col-title" style="margin-top:0.8rem;">Ambulance driver</div>
+    <p>Sees the directions and the time to the chosen hospital.</p>
+    <svg viewBox="0 0 64 40" width="120" height="75" aria-hidden="true" class="card-ico">
+  <circle cx="32" cy="20" r="17" fill="none" stroke="#255a42" stroke-width="2.6"/>
+  <circle cx="32" cy="20" r="4.5" fill="none" stroke="#255a42" stroke-width="2.6"/>
+  <path d="M32 3 V15.5 M15.5 27 L27.5 22.5 M48.5 27 L36.5 22.5" fill="none" stroke="#255a42" stroke-width="2.6" stroke-linecap="round"/>
+</svg>
+  </div>
+  <div class="big-card clickable card-float" data-go="5"><span class="pill">Hospital</span>
+    <div class="col-title" style="margin-top:0.8rem;">Receiving hospital</div>
+    <p>Sees ambulances on the way, so the bay is ready on arrival.</p>
+  <svg viewBox="0 0 64 40" width="120" height="75" aria-hidden="true" class="card-ico">
+  <rect x="14" y="4" width="36" height="32" rx="4" fill="none" stroke="#255a42" stroke-width="2.4"/>
+  <rect x="28" y="2" width="8" height="6" rx="1" fill="#255a42"/>
+  <path d="M32 11 V27 M24 19 H40" stroke="#b03a2e" stroke-width="4" stroke-linecap="round"/>
+</svg>
+    </div>
+
+  </div>
+    </section>
+    <section class="slide" data-presenter="Azaria · Richard">
+      <div class="crumb">Overview <b>› Ambulance operator</b></div>
+<h2 style="margin-top:0.3rem;">Choose the hospital, then tell the driver</h2>
+<div class="cols" style="grid-template-columns:1.1fr 1fr;align-items:start;">
+  <div class="screen">
+    <div class="screen-bar"><span>Live operations</span><span>Unit 214</span></div>
+    <div class="screen-body">
+      <div class="field" style="margin-bottom:0.6rem;">Patient location: Harbour and 5th</div>
+      <div class="row-item best"><span><b>Sunnybrook</b><br><small>12 min travel · 18 min offload</small></span><span class="pill">Best</span></div>
+      <div class="row-item"><span><b>Michael Garron</b><br><small>3 min travel · 31 min offload</small></span><span></span></div>
+      <div class="row-item"><span><b>Toronto General</b><br><small>14 min travel · 23 min offload</small></span><span></span></div>
+      <div class="btn" style="margin-top:0.6rem;width:100%;">Send to driver: Sunnybrook</div>
+    </div>
+  </div>
+  <div class="big-card">
+    <div class="stack" style="font-size:clamp(1.2rem, 2.9vh, 1.65rem);">
+      <div><b>1.</b> Enter where the patient is</div>
+      <div><b>2.</b> See ranked hospitals, with travel and offload</div>
+      <div><b>3.</b> Use human judgement and internal metrics on offload time</div>
+      <div><b>4.</b> Choose one and send it to the driver</div>
+    </div>
+    <div class="legend">The operator keeps the final choice.</div>
+  </div>
+</div>
+    </section>
+    <section class="slide" data-presenter="Azaria · Richard">
+      <div class="crumb">Overview <b>› Ambulance driver</b></div>
+<h2 style="margin-top:0.3rem;">Directions to the chosen hospital</h2>
+<div class="cols" style="grid-template-columns:1fr 1fr;align-items:center;">
+  <div class="phone">
+    <div class="phone-top"><div style="font-size:0.75rem;opacity:.85;">Destination</div><b>Sunnybrook</b></div>
+    <div style="padding:1rem;">
+      <div class="eta">12 min</div>
+      <div class="hero-label">Estimated travel to the bay</div>
+      <svg viewBox="0 0 260 150" width="100%" style="margin-top:0.8rem;background:#f3f6ef;border-radius:12px;">
+        <path d="M30 120 H120 V60 H230" fill="none" stroke="#255a42" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="30" cy="120" r="9" fill="#1e3a2d"/>
+        <circle cx="230" cy="60" r="10" fill="#b03a2e"/>
+        <text x="230" y="46" text-anchor="middle" font-size="12" font-weight="700" fill="#1e3a2d">Sunnybrook</text>
+      </svg>
+      <div class="row-item" style="margin-top:0.7rem;"><span><b>Turn right</b> onto Bayview</span><span>400 m</span></div>
+      <div class="btn light" style="width:100%;margin-top:0.4rem;">Arrived</div>
+    </div>
+  </div>
+  <div class="big-card">
+    <div class="stack" style="font-size:clamp(1.2rem, 2.9vh, 1.65rem);">
+      <div><b>1.</b> Receives the destination from the operator</div>
+      <div><b>2.</b> Follows turn by turn directions</div>
+      <div><b>3.</b> Taps arrived when the unit reaches the bay</div>
+    </div>
+  </div>
+</div>
+    </section>
+    <section class="slide" data-presenter="Azaria · Richard">
+      <div class="crumb">Overview <b>› Receiving hospital</b></div>
+<h2 style="margin-top:0.3rem;">See ambulances on the way, before they arrive</h2>
+<div class="cols" style="grid-template-columns:1.1fr 1fr;align-items:start;">
+  <div class="screen">
+    <div class="screen-bar"><span>Sunnybrook · incoming</span><span>Bays free: 2</span></div>
+    <div class="screen-body">
+      <div class="row-item best"><span><b>Unit 214</b> · CTAS 2<br><small>Arrives in 12 min</small></span><span class="pill">Prepare bay</span></div>
+      <div class="row-item"><span><b>Unit 207</b> · CTAS 3<br><small>Arrives in 19 min</small></span><span class="pill warm">Inbound</span></div>
+      <div class="row-item"><span><b>Unit 231</b> · CTAS 4<br><small>Arrives in 31 min</small></span><span class="pill warm">Inbound</span></div>
+    </div>
+  </div>
+  <div class="big-card">
+    <div class="stack" style="font-size:clamp(1.2rem, 2.9vh, 1.65rem);">
+      <div><b>1.</b> Sees every unit heading in</div>
+      <div><b>2.</b> Gets an arrival time for each one</div>
+      <div><b>3.</b> Prepares staff and beds before the crew arrives</div>
+    </div>
+  </div>
+</div>
+    </section>
+    <section class="slide" data-presenter="Azaria · Richard">
+      <div class="kicker">Shared screens</div>
+      <h2>Instant communication: one message, three screens</h2>
+      <div class="split">
+        <div class="screen">
+          <div class="screen-bar"><span>Operator</span><span>Unit 214</span></div>
+          <div class="screen-body">
+            <div class="row-item best"><span><b>Sunnybrook</b><br><small>12 min travel</small></span><span class="pill">Best</span></div>
+            <div class="row-item"><span><b>Michael Garron</b><br><small>3 min travel</small></span></div>
+            <div class="btn" style="width:100%;margin-top:0.4rem;">Send to driver</div>
+          </div>
+        </div>
+        <div class="msg-arrow">
+          <div class="msg-label">Destination<br>Sunnybrook</div>
+          <div class="msg-line"></div>
+          <div class="msg-note">sent once</div>
+        </div>
+        <div class="screen">
+          <div class="screen-bar"><span>Driver</span><span>Sunnybrook</span></div>
+          <div class="screen-body">
+            <div class="eta" style="font-size:1.8rem;">12 min</div>
+            <div class="row-item"><span><b>Turn right</b> onto Bayview</span><span>400 m</span></div>
+            <div class="btn light" style="width:100%;margin-top:0.4rem;">Arrived</div>
+          </div>
+        </div>
+        <div class="msg-arrow">
+          <div class="msg-label">ETA<br>12 min</div>
+          <div class="msg-line"></div>
+          <div class="msg-note">updates live</div>
+        </div>
+        <div class="screen">
+          <div class="screen-bar"><span>Hospital</span><span>Bays free: 2</span></div>
+          <div class="screen-body">
+            <div class="row-item best"><span><b>Unit 214</b> · CTAS 2<br><small>Arrives in 12 min</small></span><span class="pill">Prepare</span></div>
+            <div class="row-item"><span><b>Unit 207</b> · CTAS 3<br><small>Arrives in 19 min</small></span></div>
+          </div>
+        </div>
+      </div>
+      <p class="legend">Each person sees only what they need.</p>
+    </section>
+    
+    <section class="slide" data-presenter="Azaria · Richard">
+      <div class="kicker">Competitor analysis</div>
+<h2>Where we stand against each option</h2>
+<table>
+  <thead><tr><th>Capability</th><th>Baseline</th><th>PDS</th><th>Waypoint</th></tr></thead>
+  <tbody>
+    <tr><td>Recommends a hospital</td><td><span class="cross">✗</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+    <tr><td>Counts ambulances already en route</td><td><span class="cross">✗</span></td><td><span class="cross">✗</span></td><td><span class="check">✓</span></td></tr>
+    <tr><td>Predicts offload time</td><td><span class="cross">✗</span></td><td><span class="muted-tag">Not verified</span></td><td><span class="check">✓</span> <span class="muted-tag">simulated</span></td></tr>
+    <tr><td>Uses live ER wait data</td><td><span class="cross">✗</span></td><td><span class="partial">Partial</span></td><td><span class="check">✓</span></td></tr>
+    <tr><td>Uses live traffic</td><td><span class="cross">✗</span></td><td><span class="muted-tag">Not verified</span></td><td><span class="cross">✗</span> <span class="muted-tag">planned</span></td></tr>
+    <tr><td>Dispatcher makes final choice</td><td><span class="check">✓</span></td><td><span class="muted-tag">Not verified</span></td><td><span class="check">✓</span></td></tr>
+  </tbody>
+</table>
+<p class="legend">PDS entries come from the Toronto Paramedic Association page and our Kelly interview.</p>
+    </section>
+    <section class="slide" data-presenter="Azaria · Richard">
+      <div class="kicker">The core trade-off</div>
+<h2>Total time = travel + offload</h2>
+<div class="flow" style="align-items:stretch;">
+  <div class="box big-card" style="flex:1;text-align:center;"><div class="col-title">Travel time</div><p>Ambulance to hospital</p></div>
+  <div class="arrow">+</div>
+  <div class="box big-card" style="flex:1;text-align:center;"><div class="col-title">Offload time</div><p>Wait to hand over the patient</p></div>
+  <div class="arrow">=</div>
+  <div class="box big-card hi" style="flex:1;text-align:center;"><div class="col-title">Total</div><p>What the crew actually spends</p></div>
+</div>
+<p class="legend" style="font-size:1.1rem;">Choosing the hospital changes both parts at once.</p>
+    </section>
+    <section class="slide" data-presenter="Azaria · Richard">
+      <div class="kicker">Why this is hard</div>
+<h2>The nearest hospital is not always the fastest</h2>
+<svg viewBox="0 0 900 380" width="100%" style="max-height:62vh;background:#fff;border:1px solid #d6e0cc;border-radius:18px;">
+  <rect x="0" y="0" width="900" height="380" fill="#f3f6ef"/>
+  <g stroke="#ffffff" stroke-width="14" fill="none">
+    <path d="M0 260 H900"/><path d="M300 0 V380"/><path d="M560 0 V380"/><path d="M0 110 H900"/>
+  </g>
+  <g stroke="#b4781b" stroke-width="3" stroke-dasharray="8 6" fill="none">
+    <path d="M150 220 L420 110"/><path d="M150 220 L450 300"/><path d="M150 220 L700 290"/>
+  </g>
+  <circle cx="150" cy="220" r="16" fill="#1e3a2d"/>
+  <text x="150" y="258" text-anchor="middle" font-size="16" fill="#1e3a2d" font-weight="700">Ambulance</text>
+  <rect x="330" y="60" width="230" height="78" rx="14" fill="#fff" stroke="#b03a2e" stroke-width="2"/>
+  <text x="345" y="90" font-size="17" font-weight="700" fill="#1e3a2d">Michael Garron</text>
+  <text x="345" y="114" font-size="15" fill="#6c8576">3 min travel · 31 min offload</text>
+  <text x="345" y="152" font-size="15" font-weight="700" fill="#b03a2e">34 min total, nearest</text>
+  <rect x="350" y="300" width="230" height="64" rx="14" fill="#fff" stroke="#b4781b" stroke-width="2"/>
+  <text x="365" y="326" font-size="17" font-weight="700" fill="#1e3a2d">Toronto General</text>
+  <text x="365" y="348" font-size="15" fill="#6c8576">14 min travel · 23 min offload</text>
+  <rect x="610" y="250" width="250" height="78" rx="14" fill="#eef8f2" stroke="#255a42" stroke-width="2.5"/>
+  <text x="625" y="280" font-size="17" font-weight="700" fill="#1e3a2d">Sunnybrook</text>
+  <text x="625" y="304" font-size="15" fill="#6c8576">12 min travel · 18 min offload</text>
+  <text x="610" y="236" font-size="14" font-weight="700" fill="#255a42" letter-spacing="1">FASTEST: 30 MIN TOTAL</text>
+</svg>
+<p class="legend">Illustrative example from our synthetic simulation, not measured in the field.</p>
+    </section>
+    <section class="slide" data-presenter="Azaria · Richard">
+      <div class="kicker">Our model</div>
+      <h2>Offload time from public calendar data</h2>
+      <div class="formula" style="font-size:clamp(1.2rem,3.2vh,1.9rem);">T predicted = (hospital mean + 1) × calendar factor − 1</div>
+      <div class="cols" style="grid-template-columns:repeat(3,1fr);margin-top:1.4rem;">
+        <div class="big-card"><div class="pill">Data</div><p style="margin-top:0.6rem;">50,000 offload records from public Sacramento data</p></div>
+        <div class="big-card"><div class="pill">Calendar</div><p style="margin-top:0.6rem;">Time of day and weekday effects</p></div>
+        <div class="big-card hi"><div class="pill warm">Toronto</div><p style="margin-top:0.6rem;">Transferred estimate, not yet validated locally</p></div>
+      </div>
+      <p class="legend">Sacramento test: 18.4 min error vs 18.7 min for hospital averages. A small gain.</p>
+    </section>
+    <section class="slide" data-presenter="Azaria · Richard">
+      <div class="kicker">Gap analysis and decisions</div>
+      <h2>Close the critical gaps, defer the rest</h2>
+      <div class="cols" style="grid-template-columns:1fr 1fr;">
+        <div class="big-card">
+          <span class="pill red">Critical gaps</span>
+          <div class="stack" style="margin-top:0.8rem;">
+            <div><b>Live ambulance data:</b> 0 feeds connected</div>
+            <div><b>Traffic:</b> distance estimate only</div>
+            <div><b>Offload accuracy:</b> 81% coverage in Sacramento test; Toronto unvalidated</div>
+          </div>
+          <span class="pill warm" style="margin-top:1rem;">Acceptable</span>
+          <div class="stack" style="margin-top:0.6rem;">
+            <div><b>CAD integration:</b> read-only plug-in first</div>
+            <div><b>Clinical validation:</b> out of scope</div>
+          </div>
+        </div>
+        <div class="big-card hi">
+          <span class="pill">Add</span>
+          <div class="stack" style="margin-top:0.6rem;"><div>Recalibrated offload range</div><div>Auto-pause on decisions</div><div>Queued Pause</div></div>
+          <span class="pill warm" style="margin-top:1rem;">Change</span>
+          <div class="stack" style="margin-top:0.6rem;"><div>Use PDS as an input, not a replacement</div></div>
+          <span class="pill red" style="margin-top:1rem;">Defer</span>
+          <div class="stack" style="margin-top:0.6rem;"><div>Live traffic feed</div><div>CAD integration</div></div>
+        </div>
+      </div>
+      <div class="big-card hi" style="margin-top:1.1rem;">
+        <b>Our edge:</b> counts ambulances already en route, which PDS does not, and predicts offload before arrival.
+      </div>
+    </section>
+    
+        <section class="slide" data-presenter="Azaria · Richard">
+      <div class="kicker">Architecture</div>
+      <h2>What changed since Demo 2</h2>
+      <div class="flow">
+        <div class="box">Data sources<br><small>Public offload records, Toronto means, Sunnybrook P90</small></div><div class="arrow">→</div>
+        <div class="box hi">Calendar model<br><small>Time of day and weekday effects</small></div><div class="arrow">→</div>
+        <div class="box">Routing<br><small>Travel plus predicted offload</small></div><div class="arrow">→</div>
+        <div class="box">Dashboard<br><small>Recommendation and range</small></div>
+      </div>
+      <table style="margin-top:1.4rem;">
+        <thead><tr><th>Offload prediction</th><th>Baseline (hospital average)</th><th>PDS</th><th>Waypoint model</th></tr></thead>
+        <tbody>
+          <tr><td>Mean absolute error</td><td>18.7 min</td><td><span class="muted-tag">Not tested</span></td><td><b>18.4 min</b></td></tr>
+          <tr><td>Central 80% range coverage</td><td>n/a</td><td><span class="muted-tag">Not tested</span></td><td><b>81%</b></td></tr>
+          <tr><td>Where it was tested</td><td>Sacramento, 2022</td><td><span class="muted-tag">Not tested</span></td><td>Sacramento, 2022 (not Toronto)</td></tr>
+        </tbody>
+      </table>
+      <p class="legend">Small gain over the baseline. Toronto performance is unvalidated.</p></section>
+    <section class="slide" data-presenter="Azaria · Richard">
+      <iframe class="live-frame" style="height:86vh;" src="http://127.0.0.1:5173/#operations" title="Waypoint live app" loading="eager"></iframe>
+    </section>
+    <section class="slide" data-presenter="Azaria · Richard">
+      <div class="cols" style="grid-template-columns:1fr 1fr;align-items:center;">
+        <div>
+          <div class="kicker">Questions</div>
+          <h2 style="font-size:clamp(2.4rem,6vh,4rem);">Thank you</h2>
+          <div class="legend" style="font-size:1rem;">Azaria Kelman · Richard Xu</div>
+        </div>
+        <div class="big-card hi" style="text-align:center;padding:clamp(1.4rem,4vh,2.6rem);">
+          <div class="kicker">Q&amp;A timer</div>
+          <div id="qa-time" class="hero-stat" style="font-size:clamp(4rem,14vh,8rem);">03:00</div>
+          <div style="margin-top:1.2rem;display:flex;gap:0.6rem;justify-content:center;">
+            <button class="btn" id="qa-toggle" style="border:none;cursor:pointer;font:inherit;">Start</button>
+            <button class="btn light" id="qa-reset" style="cursor:pointer;font:inherit;">Reset</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bottom">
+    <button class="nav-btn" id="prev" aria-label="Previous slide">←</button>
+    <div class="route" id="route">
+      <div class="route-track"><div class="route-fill" id="route-fill"></div></div>
+      <div class="route-stops" id="route-stops"></div>
+      <div class="route-amb" id="route-amb">
+        <svg viewBox="0 0 44 26" width="44" height="26" aria-hidden="true">
+          <rect x="2" y="5" width="30" height="15" rx="3" fill="#ffffff" stroke="#255a42" stroke-width="2"/>
+          <path d="M32 10 h7 l3 5 v5 h-10 z" fill="#ffffff" stroke="#255a42" stroke-width="2" stroke-linejoin="round"/>
+          <rect x="11" y="8" width="2" height="9" fill="#b03a2e"/><rect x="8" y="11" width="8" height="2" fill="#b03a2e"/>
+          <circle cx="10" cy="22" r="3" fill="#1e3a2d"/><circle cx="34" cy="22" r="3" fill="#1e3a2d"/>
+        </svg>
+      </div>
+      <span id="bar" style="display:none"></span>
+    </div>
+    <div class="count"><span id="count"></span><span class="presenter" id="presenter">Azaria · Richard</span></div>
+    <button class="nav-btn" id="next" aria-label="Next slide">→</button>
+  </footer>
+</div>
+
+<script>
+const slides = Array.from(document.querySelectorAll('.slide'));
+let current = 0;
+function show(i) {
+  current = Math.max(0, Math.min(slides.length - 1, i));
+  slides.forEach((s, idx) => s.classList.toggle('active', idx === current));
+  document.getElementById('bar').style.width = ((current + 1) / slides.length * 100) + '%';
+  document.getElementById('count').textContent = (current + 1) + ' / ' + slides.length;
+  document.getElementById('prev').disabled = current === 0;
+  document.getElementById('next').disabled = current === slides.length - 1;
+}
+document.getElementById('prev').addEventListener('click', () => show(current - 1));
+document.getElementById('next').addEventListener('click', () => show(current + 1));
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') show(current + 1);
+  else if (e.key === 'ArrowLeft' || e.key === 'PageUp') show(current - 1);
+  else if (e.key === 'Home') show(0);
+  else if (e.key === 'End') show(slides.length - 1);
+  else if (e.key === 'f' || e.key === 'F') {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
+  }
+});
+show(parseInt((location.hash || "#1").slice(1), 10) - 1 || 0);
+
+// Presentation timer: 10 min presentation, then 5 min Q&A.
+const PRESENT_SECONDS = 10 * 60;
+const TOTAL_SECONDS = 15 * 60;
+let remaining = TOTAL_SECONDS;
+let timerOn = false;
+let timerHandle = null;
+
+function fmt(sec) {
+  const m = Math.floor(sec / 60), s = sec % 60;
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+function renderTimer() {
+  const el = document.getElementById('timer');
+  const elapsed = TOTAL_SECONDS - remaining;
+  const inQA = elapsed >= PRESENT_SECONDS;
+  const phaseLeft = inQA ? remaining : PRESENT_SECONDS - elapsed;
+  document.getElementById('timer-phase').textContent =
+    remaining === 0 ? 'Time up' : (inQA ? 'Q&A' : 'Presentation');
+  document.getElementById('timer-time').textContent = fmt(remaining === 0 ? 0 : phaseLeft);
+  el.classList.toggle('is-on', timerOn);
+  el.classList.toggle('is-warn', !inQA && remaining > 0 && phaseLeft <= 60);
+  el.classList.toggle('is-done', remaining === 0);
+}
+function tickTimer() {
+  if (remaining > 0) remaining -= 1;
+  if (remaining === 0) { timerOn = false; clearInterval(timerHandle); }
+  renderTimer();
+}
+function toggleTimer() {
+  if (remaining === 0) return;
+  timerOn = !timerOn;
+  if (timerOn) timerHandle = setInterval(tickTimer, 1000);
+  else clearInterval(timerHandle);
+  renderTimer();
+}
+function resetTimer() {
+  clearInterval(timerHandle);
+  timerOn = false;
+  remaining = TOTAL_SECONDS;
+  renderTimer();
+}
+document.getElementById('timer').addEventListener('click', toggleTimer);
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'r' || e.key === 'R') resetTimer();
+});
+renderTimer();
+
+
+// A6: presenter label above the counter, and click-to-zoom from the overview cards
+(function () {
+  const sl = Array.from(document.querySelectorAll('.slide'));
+  const pres = document.getElementById('presenter');
+  const origShow = window.show;
+  function updatePresenter() {
+    const active = document.querySelector('.slide.active');
+    if (pres && active) pres.textContent = active.dataset.presenter || '';
+  }
+  const bar = document.getElementById('bar');
+  const obs = new MutationObserver(updatePresenter);
+  sl.forEach(s => obs.observe(s, { attributes: true, attributeFilter: ['class'] }));
+  updatePresenter();
+  document.querySelectorAll('[data-go]').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.go, 10) - 1;
+      if (typeof show === 'function') show(idx);
+    });
+  });
+})();
+</script>
+<script>
+(function () {
+  var left = 180, handle = null;
+  var t = document.getElementById('qa-time');
+  var tog = document.getElementById('qa-toggle');
+  var reset = document.getElementById('qa-reset');
+  function fmt(sec) { return String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0'); }
+  function render() { t.textContent = fmt(left); t.style.color = left <= 30 ? '#b03a2e' : '#255a42'; }
+  function stop() { clearInterval(handle); handle = null; tog.textContent = 'Start'; }
+  tog.addEventListener('click', function () {
+    if (handle) { stop(); return; }
+    if (left <= 0) left = 180;
+    tog.textContent = 'Pause';
+    handle = setInterval(function () {
+      if (left > 0) left--;
+      render();
+      if (left <= 0) stop();
+    }, 1000);
+    render();
+  });
+  reset.addEventListener('click', function () { if (handle) clearInterval(handle); handle = null; left = 180; tog.textContent = 'Start'; render(); });
+  render();
+})();
+</script>
+<script>
+// A6: route-style progress bar with an ambulance, one stop per section
+(function () {
+  var stops = [
+    { name: 'Product', start: 2 },
+    { name: 'Efficiency', start: 6 },
+    { name: 'Competitors', start: 7 },
+    { name: 'Model', start: 8 },
+    { name: 'Next steps', start: 11 }
+  ];
+  var slides = Array.from(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var fill = document.getElementById('route-fill');
+  var amb = document.getElementById('route-amb');
+  var stopsEl = document.getElementById('route-stops');
+  function pos(slideNo) { return total > 1 ? ((slideNo - 1) / (total - 1)) * 100 : 0; }
+  stops.forEach(function (st, i) {
+    var x = pos(st.start);
+    var dot = document.createElement('div');
+    dot.className = 'route-stop'; dot.id = 'stop-' + i; dot.style.left = x + '%';
+    dot.title = st.name;
+    var lbl = document.createElement('div');
+    lbl.className = 'route-label'; lbl.id = 'label-' + i; lbl.style.left = x + '%';
+    lbl.textContent = st.name;
+    stopsEl.appendChild(dot); stopsEl.appendChild(lbl);
+    dot.addEventListener('click', function () { if (typeof show === 'function') show(st.start - 1); });
+    lbl.addEventListener('click', function () { if (typeof show === 'function') show(st.start - 1); });
+    dot.style.cursor = 'pointer'; lbl.style.cursor = 'pointer';
+  });
+  function update() {
+    var idx = slides.findIndex(function (s) { return s.classList.contains('active'); });
+    if (idx < 0) idx = 0;
+    var no = idx + 1;
+    var p = pos(no);
+    fill.style.width = p + '%';
+    amb.style.left = p + '%';
+    var current = 0;
+    stops.forEach(function (st, i) { if (no >= st.start) current = i; });
+    stops.forEach(function (st, i) {
+      document.getElementById('stop-' + i).classList.toggle('on', i <= current);
+      document.getElementById('label-' + i).classList.toggle('on', i === current);
+    });
+  }
+  var obs = new MutationObserver(update);
+  slides.forEach(function (s) { obs.observe(s, { attributes: true, attributeFilter: ['class'] }); });
+  update();
+})();
+</script>
+</body>
+</html>
