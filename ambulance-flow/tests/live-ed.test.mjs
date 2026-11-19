@@ -35,11 +35,11 @@ test('reference requires same hospital and metric, enough observations, and excl
   assert.equal(addHistoricalReference(raw,{...history(),points:history().points.slice(0,5)}).referenceMinutes,null);
   const h=history();h.points.push({fetched_at:iso(NOW),value:1000});assert.equal(addHistoricalReference(raw,h).referenceCount,30);
 });
-test('fresh live adjustment increases with congestion; missing references and stale readings fade to historical',()=>{
+test('live ED freshness remains available as context without an offload penalty',()=>{
   const s=snapshot();const low=liveEdAdjustment(s,'tgh',iso(NOW));
-  assert.equal(low.liveStatus,'Live');assert.equal(low.liveAdjustment,20);
-  const high=liveEdAdjustment(snapshot(reading('tgh',180)),'tgh',iso(NOW));assert(high.liveAdjustment>low.liveAdjustment);
-  const stale=liveEdAdjustment(s,'tgh',iso(NOW+90*60000));assert.equal(stale.liveStatus,'Stale');assert(stale.liveAdjustment>0 && stale.liveAdjustment<20);
+  assert.equal(low.liveStatus,'Live');assert.equal(low.liveAdjustment,0);
+  const high=liveEdAdjustment(snapshot(reading('tgh',180)),'tgh',iso(NOW));assert.equal(high.liveAdjustment,0);
+  const stale=liveEdAdjustment(s,'tgh',iso(NOW+90*60000));assert.equal(stale.liveStatus,'Stale');assert.equal(stale.liveAdjustment,0);
   const expired=liveEdAdjustment(s,'tgh',iso(NOW+180*60000));assert.equal(expired.liveStatus,'Historical Only');assert.equal(expired.liveAdjustment,0);
   assert.equal(liveEdAdjustment(s,'mgh',iso(NOW)).liveAdjustment,0);
   s.readings.tgh.referenceMinutes=null;assert.equal(liveEdAdjustment(s,'tgh',iso(NOW)).liveComparable,false);
@@ -62,7 +62,7 @@ test('invalid provider response and absent history never break simulation',async
   const noHistory=createEdService(async url=>url.includes('/current')?Response.json({hospitals:[current()]}):new Response('',{status:404}),()=>NOW);
   assert.equal((await noHistory.get()).readings.tgh.referenceMinutes,null);
 });
-test('updated observations affect routing, preserve future queues, and avoid duplicate ED penalties',()=>{
+test('ED observations preserve routing and simulated queues without unsupported penalties',()=>{
   const r=createRun({...DEFAULT_CONFIG,manual:true},'live-ranking');
   const origin={lat:43.65,lng:-79.38};
   for(const h of r.hospitals){h.lat=origin.lat;h.lng=origin.lng;}
@@ -70,9 +70,9 @@ test('updated observations affect routing, preserve future queues, and avoid dup
   r.ambulances=[{id:'candidate',...origin,from:origin,status:'AWAITING_DECISION',incidentId:'patient',until:0,routeStart:0}];
   assert.equal(choices(r,'candidate')[0].hospitalId,'sun');
   r.liveEd=snapshot(reading('sun',180));r.liveEdEvaluatedAt=iso(NOW);
-  assert.equal(choices(r,'candidate')[0].hospitalId,'mgh');
+  assert.equal(choices(r,'candidate')[0].hospitalId,'sun');
   const h=r.hospitals[3];h.observations=[{time:0,queue:8,busy:2,capacity:2,releases:[10,12]}];
-  const live=forecast(r,h,3);assert.equal(live.congestionAdjustment,0);assert.equal(live.liveAdjustment,60);assert(live.queueAdjustment>0);
+  const live=forecast(r,h,3);assert.equal(live.congestionAdjustment,0);assert.equal(live.liveAdjustment,0);assert(live.queueAdjustment>0);
   const projected=live.projectedWait;r.liveEdEvaluatedAt=iso(NOW+4*3600000);const expired=forecast(r,h,3);
   assert.equal(expired.congestionAdjustment,0);assert.equal(expired.liveAdjustment,0);assert.equal(expired.queue,live.queue);assert.equal(expired.capacity,live.capacity);
   delete r.liveEd;delete r.liveEdEvaluatedAt;assert.deepEqual(forecast(r,h,3),{...expired,liveReading:null,liveAgeMinutes:null,liveDataReason:'not_reported'});

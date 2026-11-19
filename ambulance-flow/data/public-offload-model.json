@@ -1,0 +1,219 @@
+{
+  "version": 1,
+  "availableFrom": "2026-11-19T00:00:00Z",
+  "method": "hospital-fixed-effects-log1p-ridge-calendar-transfer",
+  "status": "experimental-external-transfer",
+  "source": {
+    "url": "https://raw.githubusercontent.com/Myorignl/Final_Project7/4d004c2bf9bca7855d0bf901bb6b772d1c7af597/CSV_file/Random_sample_50000.csv",
+    "repository": "https://github.com/Myorignl/Final_Project7",
+    "commit": "4d004c2bf9bca7855d0bf901bb6b772d1c7af597",
+    "sha256": "ca93f91a01fe02ce2a4f429ad1dec565e8d497f8ccd373e358aae1fbb9720381",
+    "description": "Third-party 50,000-record random sample of Sacramento County APOT outcomes; source authors attribute records to county EMS.",
+    "license": "No explicit license in source repository; raw records are not redistributed.",
+    "periodFrom": "2017-01-01",
+    "periodTo": "2022-10-01",
+    "rows": 50000,
+    "hospitals": 11,
+    "excluded": {
+      "duplicate": 0,
+      "invalid": 0
+    }
+  },
+  "training": {
+    "trainCount": 31505,
+    "tuningCount": 5269,
+    "calibrationCount": 5423,
+    "fitThrough": "2021-06-30",
+    "splitBoundaryExcluded": 1,
+    "penalty": 0,
+    "selectionMetric": "tuning RMSE in minutes",
+    "candidates": [
+      {
+        "penalty": 0,
+        "maeMinutes": 14.441184143053011,
+        "rmseMinutes": 27.082307520295917,
+        "biasMinutes": -4.684609686563332
+      },
+      {
+        "penalty": 1,
+        "maeMinutes": 14.44119893957916,
+        "rmseMinutes": 27.082339948114026,
+        "biasMinutes": -4.684605840040038
+      },
+      {
+        "penalty": 10,
+        "maeMinutes": 14.441331552479374,
+        "rmseMinutes": 27.082631189655437,
+        "biasMinutes": -4.6845724238688
+      },
+      {
+        "penalty": 100,
+        "maeMinutes": 14.442630448463147,
+        "rmseMinutes": 27.085484626482597,
+        "biasMinutes": -4.684341290219774
+      },
+      {
+        "penalty": 1000,
+        "maeMinutes": 14.45465754234567,
+        "rmseMinutes": 27.110099663051205,
+        "biasMinutes": -4.685973952401818
+      }
+    ],
+    "numpyVersion": "2.2.6"
+  },
+  "calendarCoefficients": [
+    -0.18868023343416118,
+    -0.07318175133246191,
+    0.02669692061500333,
+    0.025590316990107286,
+    -0.018812099587001408,
+    -0.004111152503565292,
+    -0.0313955891396691,
+    -0.029098974633084862,
+    -0.08343354989778017,
+    -0.11582842745584859
+  ],
+  "calendarNormalizer": 1.0126533572172303,
+  "residualRatios": {
+    "p10": 0.3860115952116607,
+    "p50": 0.992015718504533,
+    "p90": 3.0149011222122954
+  },
+  "unconditionalP90Ratio": 3.1478889385018007,
+  "validation": {
+    "region": "Sacramento County, California",
+    "testFrom": "2022-01-01",
+    "testTo": "2022-10-01",
+    "testCount": 7802,
+    "model": {
+      "maeMinutes": 18.43358019350203,
+      "rmseMinutes": 36.31004804415932,
+      "biasMinutes": -9.291111212733556
+    },
+    "hospitalMeanBaseline": {
+      "maeMinutes": 18.718343536521953,
+      "rmseMinutes": 36.651663062671446,
+      "biasMinutes": -9.333339965107482
+    },
+    "hospitalMedianBaseline": {
+      "maeMinutes": 19.109117533965648,
+      "rmseMinutes": 38.41098506908963,
+      "biasMinutes": -14.71415470392207
+    },
+    "central80Coverage": 0.8101768777236606,
+    "meanRangeWidthMinutes": 59.264759663355896,
+    "maeImprovementWeekBootstrap95": [
+      0.20317217494447232,
+      0.3583583011446485
+    ],
+    "bootstrapWeeks": 40,
+    "byHospital": [
+      {
+        "hospitalCode": "196",
+        "selectedPenalty": 0,
+        "count": 457,
+        "maeMinutes": 18.58968604798373,
+        "rmseMinutes": 32.055704366455345,
+        "biasMinutes": -14.355843572644686,
+        "baselineMaeMinutes": 18.77806725172356
+      },
+      {
+        "hospitalCode": "197",
+        "selectedPenalty": 0,
+        "count": 1009,
+        "maeMinutes": 13.443687719105235,
+        "rmseMinutes": 21.943731928572113,
+        "biasMinutes": -8.432177673788669,
+        "baselineMaeMinutes": 13.596909986524487
+      },
+      {
+        "hospitalCode": "280",
+        "selectedPenalty": 0,
+        "count": 644,
+        "maeMinutes": 16.290801050986747,
+        "rmseMinutes": 27.47883986805209,
+        "biasMinutes": -7.018914571338092,
+        "baselineMaeMinutes": 16.335697937806202
+      },
+      {
+        "hospitalCode": "282",
+        "selectedPenalty": 0,
+        "count": 391,
+        "maeMinutes": 5.905810408747227,
+        "rmseMinutes": 12.574671964206983,
+        "biasMinutes": -1.6791510149066444,
+        "baselineMaeMinutes": 5.8764720030472875
+      },
+      {
+        "hospitalCode": "286",
+        "selectedPenalty": 0,
+        "count": 1097,
+        "maeMinutes": 22.104141525920042,
+        "rmseMinutes": 39.02861877005063,
+        "biasMinutes": -8.295397483841896,
+        "baselineMaeMinutes": 22.710833419321894
+      },
+      {
+        "hospitalCode": "288",
+        "selectedPenalty": 0,
+        "count": 620,
+        "maeMinutes": 19.025325173392122,
+        "rmseMinutes": 31.41775254982705,
+        "biasMinutes": -10.507882983592143,
+        "baselineMaeMinutes": 19.03519024549533
+      },
+      {
+        "hospitalCode": "475",
+        "selectedPenalty": 0,
+        "count": 955,
+        "maeMinutes": 23.366909632201637,
+        "rmseMinutes": 37.461139731410555,
+        "biasMinutes": -9.850576219772067,
+        "baselineMaeMinutes": 23.605680122048472
+      },
+      {
+        "hospitalCode": "481",
+        "selectedPenalty": 0,
+        "count": 270,
+        "maeMinutes": 10.515910891119475,
+        "rmseMinutes": 13.744775668734105,
+        "biasMinutes": 4.333483018134449,
+        "baselineMaeMinutes": 10.645814814814814
+      },
+      {
+        "hospitalCode": "5",
+        "selectedPenalty": 0,
+        "count": 1249,
+        "maeMinutes": 16.755498932733307,
+        "rmseMinutes": 33.90956410082803,
+        "biasMinutes": -8.012609459694067,
+        "baselineMaeMinutes": 17.229986270447874
+      },
+      {
+        "hospitalCode": "508",
+        "selectedPenalty": 0,
+        "count": 979,
+        "maeMinutes": 26.790667956588532,
+        "rmseMinutes": 61.194752734756875,
+        "biasMinutes": -18.431707180422507,
+        "baselineMaeMinutes": 27.083010731127345
+      },
+      {
+        "hospitalCode": "549",
+        "selectedPenalty": 0,
+        "count": 131,
+        "maeMinutes": 5.698543552110375,
+        "rmseMinutes": 8.664839561396162,
+        "biasMinutes": -1.6011103523270136,
+        "baselineMaeMinutes": 5.754582053756836
+      }
+    ],
+    "torontoValidated": false
+  },
+  "assumptions": [
+    "Calendar effects and normalized residual distribution transfer from Sacramento to Toronto.",
+    "Toronto published hospital means or percentiles anchor the level; no paired Toronto outcomes validate the transfer.",
+    "Source Date/pickup_date and arrival_time are interpreted as local calendar time; source availability latency is unknown.",
+    "Live posted ED waits are separate context; their relationship to APOT is not fitted."
+  ]
+}

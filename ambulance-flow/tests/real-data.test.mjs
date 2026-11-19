@@ -9,16 +9,16 @@ test('historical-only estimates use actual matched baselines and never manufactu
  const predictions=hospitalPredictions();assert.equal(predictions.length,5);assert.deepEqual(predictions.map(p=>p.offload),[58,59,36,28,60]);
  for(const p of predictions){assert.equal(p.queue,null);assert.equal(p.inbound,null);assert.equal(p.capacity,null);assert.equal(p.actualMeanOffload,null);assert.equal(p.actualCompletions,null);assert.equal(p.liveAdjustment,0);assert.equal(p.liveStatus,'Historical Only');assert(!('queueAdjustment' in p));assert(!('capabilities' in p));}
 });
-test('real-source prediction is baseline plus live adjustment, stale fades and expired falls back exactly',()=>{
- assert.equal(predictHospital('sun',snapshot(),now).offload,88);
- const stale=predictHospital('sun',snapshot(90),now);assert(stale.offload>28&&stale.offload<88);assert.equal(stale.liveStatus,'Stale');
+test('ED context does not alter offload estimates without paired outcome evidence',()=>{
+ assert.equal(predictHospital('sun',snapshot(),now).offload,28);
+ const stale=predictHospital('sun',snapshot(90),now);assert.equal(stale.offload,28);assert.equal(stale.liveStatus,'Stale');
  assert.equal(predictHospital('sun',snapshot(180),now).offload,28);
  const missingReference=snapshot();missingReference.readings.sun.referenceMinutes=null;assert.equal(predictHospital('sun',missingReference,now).offload,28);
  assert.equal(predictHospital('unknown').baseline,43);assert.equal(predictHospital('unknown').fallback,true);
 });
-test('hospital recommendation changes on real readings without incidents, capacity or synthetic eligibility',()=>{
+test('hospital ranking is not changed by unrelated ED readings',()=>{
  assert.equal(journeyNetwork().ranked[0].id,'sun');
- const live=journeyNetwork(snapshot(),now);assert.equal(live.ranked[0].id,'mgh');assert.equal(live.ranked.length,5);
+ const live=journeyNetwork(snapshot(),now);assert.equal(live.ranked[0].id,'sun');assert.equal(live.ranked.length,5);
  for(const h of live.ranked){assert.equal(h.travel,null);assert.equal(h.total,null);}assert.equal(live.rankBy,'offload');assert(!('run' in live));
 });
 test('only supplied travel contributes to totals; partial travel never becomes a zero-minute assumption',()=>{

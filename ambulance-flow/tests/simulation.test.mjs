@@ -171,11 +171,11 @@ test('matched evaluations share frozen ED observations and report travel plus of
  assert.deepEqual(result.inputs.liveEd,liveEd);assert.equal(result.inputs.liveEdEvaluatedAt,evaluatedAt);assert(result.summary.some(s=>s.metric==='meanTravelOffload'));
  for(const seed of result.seeds){const rows=result.rows.filter(r=>r.seed===seed);assert.equal(rows[0].metrics.generated,rows[1].metrics.generated);}
 });
-test('live ED input changes generated background offload as well as predictions',()=>{
+test('live ED context does not manufacture simulated offload outcomes',()=>{
  const r=createRun({...DEFAULT_CONFIG,manual:true,slots:1},'live-outcome');const h=r.hospitals[3];
  const date='2026-11-05T19:00:00Z';r.liveEdEvaluatedAt=date;r.liveEd={source:'ER Compass',checkedAt:date,lastSuccessAt:date,error:null,readings:{sun:{hospitalId:'sun',externalHospital:h.name,metric:'posted_wait_minutes',waitMinutes:180,referenceMinutes:90,referenceCount:30,referenceFrom:'2026-11-01T00:00:00Z',referenceTo:'2026-11-04T00:00:00Z',collectedAt:date,observedAt:date,timestampBasis:'collection',publisherAsOf:null}}};
  r.incidents=[{id:'live-case',time:0,lat:h.lat,lng:h.lng,care:'general',scene:0,serviceFactor:1,assignedAt:0}];r.ambulances=[{id:'unit',lat:h.lat,lng:h.lng,from:h,incidentId:'live-case',status:'AWAITING_DECISION',until:0,routeStart:0}];
- const option=choices(r,'unit').find(c=>c.hospitalId===h.id);assert.equal(option.offload,88);decide(r,'unit',h.id);advance(r,100);assert.equal(r.incidents[0].offload,88);assert.equal(r.incidents[0].wait,0);
+ const option=choices(r,'unit').find(c=>c.hospitalId===h.id);assert.equal(option.offload,28);decide(r,'unit',h.id);advance(r,100);assert.equal(r.incidents[0].offload,28);assert.equal(r.incidents[0].wait,0);
 });
 test('pickup-only cases skip dispatch and scene stages; transport views exclude idle vehicles',()=>{
  const r=createRun({...DEFAULT_CONFIG,manual:true},'pickup-only');advance(r,15);
@@ -188,3 +188,5 @@ test('unfinished transport counts exclude cases not yet picked up',()=>{
  const r=createRun({...DEFAULT_CONFIG,fleet:5,manual:true,callsPerHour:90},'cohort');advance(r,30);
  const m=metrics(r);assert(m.generated>m.pickedUp);assert.equal(m.pickedUp,5);assert.equal(m.unfinished,5);assert.equal(m.completed,0);
 });
+
+test("simulation has no fabricated prediction interval",()=>{const r=createRun(DEFAULT_CONFIG,"interval");const p=forecast(r,r.hospitals[0]);assert.equal(p.interval,null);assert.equal(p.lower,null);assert.equal(p.upper,null);assert.equal(p.estimateKind,"simulation");assert.equal(r.modelVersion,4);});

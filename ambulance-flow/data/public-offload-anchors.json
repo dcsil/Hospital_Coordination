@@ -1,0 +1,12 @@
+{
+  "sun": {
+    "statistic": "p90",
+    "minutes": 58,
+    "period": "Q3 2025 (as stated in 2026/27 QIP)",
+    "url": "https://sunnybrook.ca/wp-content/uploads/2026/04/Quality-Improvement-Plan.pdf",
+    "page": 23,
+    "sha256": "6090644a9d6f137210e9a97490a7d76e07f31ddabce3120b60fff37b130b9d9f",
+    "verifiedOn": "2026-11-19",
+    "note": "Current performance, not the 30-minute improvement target. P90 is not a mean; the external distribution is used to infer its scale."
+  }
+}
