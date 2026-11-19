@@ -307,6 +307,16 @@ a { color: var(--cx-accent); }
 @keyframes routeDash { to { stroke-dashoffset: -24; } }
 .route-map { overflow: visible; }
 </style>
+<style id="light-fx">
+@keyframes fxRise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.slide.active .fx-rise { animation: fxRise 0.5s ease both; animation-delay: var(--d, 0s); }
+@keyframes fxPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(37, 90, 66, 0.35); } 50% { box-shadow: 0 0 0 8px rgba(37, 90, 66, 0); } }
+.slide.active .fx-pulse { animation: fxPulse 2s ease-out infinite; }
+.fx-bar { height: 5px; background: rgba(37, 90, 66, 0.12); border-radius: 4px; margin: 0.1rem 0 0.5rem; overflow: hidden; }
+.fx-bar span { display: block; height: 100%; width: 0; background: #255a42; border-radius: 4px; }
+@keyframes fxFill { from { width: 0; } to { width: var(--w); } }
+.slide.active .fx-bar span { animation: fxFill 1.4s ease-out both; animation-delay: var(--d, 0s); }
+</style>
 </head>
 <body>
 <div class="deck">
@@ -394,10 +404,10 @@ a { color: var(--cx-accent); }
     <div class="screen-bar"><span>Live operations</span><span>Unit 214</span></div>
     <div class="screen-body">
       <div class="field" style="margin-bottom:0.6rem;">Patient location: Harbour and 5th</div>
-      <div class="row-item best"><span><b>Sunnybrook</b><br><small>12 min travel · 18 min offload</small></span><span class="pill">Best</span></div>
-      <div class="row-item"><span><b>Michael Garron</b><br><small>3 min travel · 31 min offload</small></span><span></span></div>
-      <div class="row-item"><span><b>Toronto General</b><br><small>14 min travel · 23 min offload</small></span><span></span></div>
-      <div class="btn" style="margin-top:0.6rem;width:100%;">Send to driver: Sunnybrook</div>
+      <div class="row-item best fx-rise" style="--d:0.15s;"><span><b>Sunnybrook</b><br><small>12 min travel · 18 min offload</small></span><span class="pill">Best</span></div>
+      <div class="row-itemNone fx-rise" style="--d:0.27s;"><span><b>Michael Garron</b><br><small>3 min travel · 31 min offload</small></span><span></span></div>
+      <div class="row-itemNone fx-rise" style="--d:0.39s;"><span><b>Toronto General</b><br><small>14 min travel · 23 min offload</small></span><span></span></div>
+      <div class="btn fx-pulse" style="margin-top:0.6rem;width:100%;">Send to driver: Sunnybrook</div>
     </div>
   </div>
   <div class="big-card">
@@ -458,8 +468,11 @@ a { color: var(--cx-accent); }
     <div class="screen-bar"><span>Sunnybrook · incoming</span><span>Bays free: 2</span></div>
     <div class="screen-body">
       <div class="row-item best"><span><b>Unit 214</b> · CTAS 2<br><small>Arrives in 12 min</small></span><span class="pill">Prepare bay</span></div>
+            <div class="fx-bar" style="--w:25%;--d:1.0s;"><span></span></div>
       <div class="row-item"><span><b>Unit 207</b> · CTAS 3<br><small>Arrives in 19 min</small></span><span class="pill warm">Inbound</span></div>
+            <div class="fx-bar" style="--w:50%;--d:1.25s;"><span></span></div>
       <div class="row-item"><span><b>Unit 231</b> · CTAS 4<br><small>Arrives in 31 min</small></span><span class="pill warm">Inbound</span></div>
+            <div class="fx-bar" style="--w:75%;--d:1.5s;"><span></span></div>
     </div>
   </div>
   <div class="big-card">
