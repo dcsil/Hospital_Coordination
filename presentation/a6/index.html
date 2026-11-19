@@ -291,6 +291,17 @@ a { color: var(--cx-accent); }
  .eta-visual img { max-height:28vh; }
 }
 </style>
+<style id="problem-css">
+.problem-slide { flex-direction: column; justify-content: flex-start; align-items: stretch; padding-top: clamp(1rem, 3vh, 2rem); }
+.problem-slide > * { max-width: 1320px; width: 100%; margin-left: auto; margin-right: auto; }
+.problem-top { padding-bottom: clamp(0.8rem, 2vh, 1.4rem); border-bottom: 2px solid #d6e0cc; margin-bottom: clamp(0.8rem, 2vh, 1.2rem); }
+.problem-top h2 { font-size: clamp(1.6rem, 3.6vh, 2.5rem); line-height: 1.2; margin-bottom: 0; }
+.problem-bottom { flex: 1; }
+.compact table { font-size: clamp(1.05rem, 2.6vh, 1.4rem); }
+.compact th { padding: 0.7rem 0.9rem; font-size: 0.8rem; }
+.compact td { padding: clamp(0.5rem, 1.4vh, 0.85rem) 0.9rem; }
+.problem-bottom .legend { margin-top: 0.5rem; font-size: 0.85rem; }
+</style>
 </head>
 <body>
 <div class="deck">
@@ -314,8 +325,29 @@ a { color: var(--cx-accent); }
   <div class="legend" style="margin-top:2.2rem;font-size:0.85rem;letter-spacing:0.04em;">Azaria Kelman · Richard Xu</div>
 </div>
     </section>
+    <section class="slide problem-slide" data-presenter="Azaria · Richard">
+      <div class="problem-top">
+        <div class="kicker">The problem</div>
+        <h2>Inefficient communication between ambulance call centre operators, drivers and hospitals</h2>
+      </div>
+      <div class="problem-bottom">
+        <div class="kicker" style="margin-bottom:0.4rem;">Competitor analysis</div>
+        <div class="compact"><table>
+  <thead><tr><th>Capability</th><th>Baseline</th><th>Patient Destination Software</th><th>Waypoint</th></tr></thead>
+  <tbody>
+    <tr><td>Recommends a hospital</td><td><span class="cross">✗</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
+    <tr><td>Counts ambulances already en route</td><td><span class="cross">✗</span></td><td><span class="cross">✗</span></td><td><span class="check">✓</span></td></tr>
+    <tr><td>Predicts offload time</td><td><span class="cross">✗</span></td><td><span class="muted-tag">Not verified</span></td><td><span class="check">✓</span> <span class="muted-tag">simulated</span></td></tr>
+    <tr><td>Uses live ER wait data</td><td><span class="cross">✗</span></td><td><span class="partial">Partial</span></td><td><span class="check">✓</span></td></tr>
+    <tr><td>Uses live traffic</td><td><span class="cross">✗</span></td><td><span class="muted-tag">Not verified</span></td><td><span class="cross">✗</span> <span class="muted-tag">planned</span></td></tr>
+    <tr><td>Dispatcher makes final choice</td><td><span class="check">✓</span></td><td><span class="muted-tag">Not verified</span></td><td><span class="check">✓</span></td></tr>
+  </tbody>
+</table></div>
+        <p class="legend">Patient Destination Software entries come from the Toronto Paramedic Association page and our Kelly interview.</p>
+      </div>
+    </section>
     <section class="slide" data-presenter="Azaria · Richard">
-      <div class="kicker">Product overview</div>
+      <div class="kicker">Full solution</div>
 
 <div class="cols" style="grid-template-columns:repeat(3,1fr);">
   <div class="big-card clickable card-float" data-go="3"><span class="pill">Operator</span>
@@ -464,22 +496,7 @@ a { color: var(--cx-accent); }
       <p class="legend">Each person sees only what they need.</p>
     </section>
     
-    <section class="slide" data-presenter="Azaria · Richard">
-      <div class="kicker">Competitor analysis</div>
-<h2>Where we stand against each option</h2>
-<table>
-  <thead><tr><th>Capability</th><th>Baseline</th><th>PDS</th><th>Waypoint</th></tr></thead>
-  <tbody>
-    <tr><td>Recommends a hospital</td><td><span class="cross">✗</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
-    <tr><td>Counts ambulances already en route</td><td><span class="cross">✗</span></td><td><span class="cross">✗</span></td><td><span class="check">✓</span></td></tr>
-    <tr><td>Predicts offload time</td><td><span class="cross">✗</span></td><td><span class="muted-tag">Not verified</span></td><td><span class="check">✓</span> <span class="muted-tag">simulated</span></td></tr>
-    <tr><td>Uses live ER wait data</td><td><span class="cross">✗</span></td><td><span class="partial">Partial</span></td><td><span class="check">✓</span></td></tr>
-    <tr><td>Uses live traffic</td><td><span class="cross">✗</span></td><td><span class="muted-tag">Not verified</span></td><td><span class="cross">✗</span> <span class="muted-tag">planned</span></td></tr>
-    <tr><td>Dispatcher makes final choice</td><td><span class="check">✓</span></td><td><span class="muted-tag">Not verified</span></td><td><span class="check">✓</span></td></tr>
-  </tbody>
-</table>
-<p class="legend">PDS entries come from the Toronto Paramedic Association page and our Kelly interview.</p>
-    </section>
+    
     <section class="slide" data-presenter="Azaria · Richard">
       <div class="kicker">The core trade-off</div>
 <h2>Total time = travel + offload</h2>
@@ -513,11 +530,11 @@ a { color: var(--cx-accent); }
     </section>
     <section class="slide" data-presenter="Azaria · Richard">
       <div class="kicker">Our competitor · Patient Destination Software</div>
-      <h2>PDS helps assign a hospital. The queue can change en route.</h2>
+      <h2>Patient Destination Software helps assign a hospital. The queue can change en route.</h2>
       <div class="cols">
         <div class="big-card">
-          <h3>How Toronto uses PDS</h3>
-          <p>A destination coordinator monitors hospital status and uses PDS to assign a hospital based on the crew’s location, the urgency of the patient’s condition and the services they need.</p>
+          <h3>How Toronto uses Patient Destination Software</h3>
+          <p>A destination coordinator monitors hospital status and uses Patient Destination Software to assign a hospital based on the crew’s location, the urgency of the patient’s condition and the services they need.</p>
         </div>
         <div class="big-card hi">
           <h3>Where the recommendation can fall short</h3>
@@ -554,7 +571,7 @@ a { color: var(--cx-accent); }
         <thead><tr><th scope="col">Policy</th><th scope="col">How the destination is chosen</th><th scope="col">Improvement</th></tr></thead>
         <tbody>
           <tr><th scope="row">Baseline</th><td>Choose the nearest eligible hospital.</td><td><strong>0%</strong> (reference)</td></tr>
-          <tr><th scope="row">PDS</th><td>Use the PDS hospital recommendation.</td><td><strong>30%</strong></td></tr>
+          <tr><th scope="row">Patient Destination Software</th><td>Use the Patient Destination Software hospital recommendation.</td><td><strong>30%</strong></td></tr>
           <tr><th scope="row">Waypoint</th><td>Rank eligible hospitals by estimated travel time plus predicted offload time.</td><td><strong>66%</strong></td></tr>
         </tbody>
       </table>
@@ -570,7 +587,7 @@ a { color: var(--cx-accent); }
         <div class="box">Dashboard<br><small>Recommendation and range</small></div>
       </div>
       <table style="margin-top:1.4rem;">
-        <thead><tr><th>Offload prediction</th><th>Baseline (hospital average)</th><th>PDS</th><th>Waypoint model</th></tr></thead>
+        <thead><tr><th>Offload prediction</th><th>Baseline (hospital average)</th><th>Patient Destination Software</th><th>Waypoint model</th></tr></thead>
         <tbody>
           <tr><td>Mean absolute error</td><td>18.7 min</td><td><span class="muted-tag">Not tested</span></td><td><b>18.4 min</b></td></tr>
           <tr><td>Central 80% range coverage</td><td>n/a</td><td><span class="muted-tag">Not tested</span></td><td><b>81%</b></td></tr>
@@ -742,9 +759,9 @@ renderTimer();
 // A6: route-style progress bar with an ambulance, one stop per section
 (function () {
   var stops = [
-    { name: 'Product', start: 2 },
-    { name: 'Efficiency', start: 6 },
-    { name: 'Competitors', start: 7 },
+    { name: 'Problem', start: 2 },
+    { name: 'Product', start: 3 },
+    { name: 'Efficiency', start: 7 },
     { name: 'Model', start: 8 },
     { name: 'Next steps', start: 13 }
   ];
