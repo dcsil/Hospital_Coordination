@@ -581,14 +581,11 @@ a { color: var(--cx-accent); }
         <div class="big-card">
           <h3>Training data</h3>
           <div class="big">36,774 records</div>
-          <p>We trained on 31,505 offloads, tuned on 5,269 more, then fit the final model on both groups.</p>
           <p class="legend">Source dataset of 50,000 offloads across 11 Sacramento County hospitals.</p>
         </div>
         <div class="big-card hi">
           <h3>Performance on 7,802 held-out cases</h3>
           <div class="big">18.43 min</div>
-          <p>Average absolute prediction error on Sacramento offloads from January through October 2022.</p>
-          <p class="legend">Using each hospital’s historical average gave an error of 18.72 min.</p>
         </div>
       </div>
       <p class="legend"><b>The model reduced average absolute error by 0.29 minutes per case</b> (about 17 seconds). Toronto accuracy still needs local validation.</p>
