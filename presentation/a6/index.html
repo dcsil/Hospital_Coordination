@@ -512,6 +512,22 @@ a { color: var(--cx-accent); }
       <p class="eta-sources">Published approach (2020): <a href="https://blog.google/products-and-platforms/products/maps/google-maps-101-how-ai-helps-predict-traffic-and-determine-routes/" target="_blank" rel="noopener noreferrer">Google Maps: traffic &amp; routing</a> · <a href="https://deepmind.google/blog/traffic-prediction-with-advanced-graph-neural-networks/" target="_blank" rel="noopener noreferrer">DeepMind: graph neural networks</a></p>
     </section>
     <section class="slide" data-presenter="Azaria · Richard">
+      <div class="kicker">Our competitor · Patient Destination Software</div>
+      <h2>PDS helps assign a hospital. The queue can change en route.</h2>
+      <div class="cols">
+        <div class="big-card">
+          <h3>How Toronto uses PDS</h3>
+          <p>A destination coordinator monitors hospital status and uses PDS to assign a hospital based on the crew’s location, the urgency of the patient’s condition and the services they need.</p>
+        </div>
+        <div class="big-card hi">
+          <h3>Where the recommendation can fall short</h3>
+          <p>In our interview, Kelly described outdated status information and unexpected simultaneous arrivals. Two crews can head toward the same available hospital and find a queue when they arrive.</p>
+        </div>
+      </div>
+      <p class="legend">Waypoint addresses this gap by using inbound ambulances to estimate the handover queue at arrival in its simulator.</p>
+      <p class="legend">Sources include the <a href="https://www.torontoparamedic.com/communications/" target="_blank" rel="noopener noreferrer">Toronto Paramedic Association</a> and our interview with Kelly.</p>
+    </section>
+    <section class="slide" data-presenter="Azaria · Richard">
       <div class="kicker">Ambulance offload prediction</div>
       <h2>Our AI model predicts time to patient handover</h2>
       <p>A regression model learns how offload time varies by hospital, hour of arrival and day of the week.</p>
@@ -532,37 +548,19 @@ a { color: var(--cx-accent); }
       <p class="legend"><b>The model reduced average absolute error by 0.29 minutes per case</b> (about 17 seconds). Toronto accuracy still needs local validation.</p>
     </section>
     <section class="slide" data-presenter="Azaria · Richard">
-      <div class="kicker">Gap analysis and decisions</div>
-      <h2>Close the critical gaps, defer the rest</h2>
-      <div class="cols" style="grid-template-columns:1fr 1fr;">
-        <div class="big-card">
-          <span class="pill red">Critical gaps</span>
-          <div class="stack" style="margin-top:0.8rem;">
-            <div><b>Live ambulance data:</b> 0 feeds connected</div>
-            <div><b>Traffic:</b> distance estimate only</div>
-            <div><b>Offload accuracy:</b> 81% coverage in Sacramento test; Toronto unvalidated</div>
-          </div>
-          <span class="pill warm" style="margin-top:1rem;">Acceptable</span>
-          <div class="stack" style="margin-top:0.6rem;">
-            <div><b>CAD integration:</b> read-only plug-in first</div>
-            <div><b>Clinical validation:</b> out of scope</div>
-          </div>
-        </div>
-        <div class="big-card hi">
-          <span class="pill">Add</span>
-          <div class="stack" style="margin-top:0.6rem;"><div>Recalibrated offload range</div><div>Auto-pause on decisions</div><div>Queued Pause</div></div>
-          <span class="pill warm" style="margin-top:1rem;">Change</span>
-          <div class="stack" style="margin-top:0.6rem;"><div>Use PDS as an input, not a replacement</div></div>
-          <span class="pill red" style="margin-top:1rem;">Defer</span>
-          <div class="stack" style="margin-top:0.6rem;"><div>Live traffic feed</div><div>CAD integration</div></div>
-        </div>
-      </div>
-      <div class="big-card hi" style="margin-top:1.1rem;">
-        <b>Our edge:</b> counts ambulances already en route, which PDS does not, and predicts offload before arrival.
-      </div>
+      <div class="kicker">Destination policy comparison</div>
+      <h2>Improvement over the nearest-hospital policy</h2>
+      <table>
+        <thead><tr><th scope="col">Policy</th><th scope="col">How the destination is chosen</th><th scope="col">Improvement</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Baseline</th><td>Choose the nearest eligible hospital.</td><td><strong>0%</strong> (reference)</td></tr>
+          <tr><th scope="row">PDS</th><td>Use the PDS hospital recommendation.</td><td><strong>30%</strong></td></tr>
+          <tr><th scope="row">Waypoint</th><td>Rank eligible hospitals by estimated travel time plus predicted offload time.</td><td><strong>66%</strong></td></tr>
+        </tbody>
+      </table>
+      <p class="legend">Team-supplied comparison. The outcome metric and evaluation period are unspecified.</p>
     </section>
-    
-        <section class="slide" data-presenter="Azaria · Richard">
+    <section class="slide" data-presenter="Azaria · Richard">
       <div class="kicker">Architecture</div>
       <h2>What changed since Demo 2</h2>
       <div class="flow">
@@ -748,7 +746,7 @@ renderTimer();
     { name: 'Efficiency', start: 6 },
     { name: 'Competitors', start: 7 },
     { name: 'Model', start: 8 },
-    { name: 'Next steps', start: 11 }
+    { name: 'Next steps', start: 13 }
   ];
   var slides = Array.from(document.querySelectorAll('.slide'));
   var total = slides.length;
