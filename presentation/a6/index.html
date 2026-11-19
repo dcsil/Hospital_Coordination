@@ -546,8 +546,6 @@ a { color: var(--cx-accent); }
       </div>
       <p class="legend">Each person sees only what they need.</p>
     </section>
-    
-    
     <section class="slide" data-presenter="Azaria · Richard">
       <div class="kicker">The core trade-off</div>
 <h2>Total time = travel + offload</h2>
@@ -621,27 +619,6 @@ a { color: var(--cx-accent); }
       <p class="legend">Team-supplied comparison. The outcome metric and evaluation period are unspecified.</p>
     </section>
     <section class="slide" data-presenter="Azaria · Richard">
-      <div class="kicker">Architecture</div>
-      <h2>What changed since Demo 2</h2>
-      <div class="flow">
-        <div class="box">Data sources<br><small>Public offload records, Toronto means, Sunnybrook P90</small></div><div class="arrow">→</div>
-        <div class="box hi">Calendar model<br><small>Time of day and weekday effects</small></div><div class="arrow">→</div>
-        <div class="box">Routing<br><small>Travel plus predicted offload</small></div><div class="arrow">→</div>
-        <div class="box">Dashboard<br><small>Recommendation and range</small></div>
-      </div>
-      <table style="margin-top:1.4rem;">
-        <thead><tr><th>Offload prediction</th><th>Baseline (hospital average)</th><th>Patient Destination Software</th><th>Waypoint model</th></tr></thead>
-        <tbody>
-          <tr><td>Mean absolute error</td><td>18.7 min</td><td><span class="muted-tag">Not tested</span></td><td><b>18.4 min</b></td></tr>
-          <tr><td>Central 80% range coverage</td><td>n/a</td><td><span class="muted-tag">Not tested</span></td><td><b>81%</b></td></tr>
-          <tr><td>Where it was tested</td><td>Sacramento, 2022</td><td><span class="muted-tag">Not tested</span></td><td>Sacramento, 2022 (not Toronto)</td></tr>
-        </tbody>
-      </table>
-      <p class="legend">Small gain over the baseline. Toronto performance is unvalidated.</p></section>
-    <section class="slide" data-presenter="Azaria · Richard">
-      <iframe class="live-frame" style="height:86vh;" src="http://127.0.0.1:5173/#operations" title="Waypoint live app" loading="eager"></iframe>
-    </section>
-    <section class="slide" data-presenter="Azaria · Richard">
       <div class="kicker">What changed since last week</div>
       <h2>Three views, live traffic next, a stronger model</h2>
       <div style="display:grid;grid-template-columns:repeat(3,clamp(170px,22vh,230px));justify-content:center;gap:1rem;margin-top:0.8rem;">
@@ -665,6 +642,9 @@ a { color: var(--cx-accent); }
         <div class="big-card"><span class="pill warm">Next</span><p style="margin-top:0.6rem;"><b>Live traffic:</b> the travel leg will use live road data. Not yet connected.</p></div>
         <div class="big-card hi"><span class="pill">Merged</span><p style="margin-top:0.6rem;"><b>Improved model:</b> regression model on main (PR #22), a 0.29 min gain in the Sacramento test.</p></div>
       </div>
+    </section>
+    <section class="slide" data-presenter="Azaria · Richard">
+      <iframe class="live-frame" style="height:86vh;" src="http://127.0.0.1:5173/#operations" title="Waypoint live app" loading="eager"></iframe>
     </section>
     <section class="slide" data-presenter="Azaria · Richard">
       <div class="cols" style="grid-template-columns:1fr 1fr;align-items:center;">
