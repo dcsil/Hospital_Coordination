@@ -270,6 +270,27 @@ a { color: var(--cx-accent); }
 .card-float { position: relative; padding-bottom: 2.6rem; overflow: visible; }
 .card-ico { position: absolute; right: 18px; bottom: -44px; opacity: 0.55; pointer-events: none; filter: drop-shadow(0 6px 10px rgba(37,90,66,0.12)); }
 </style>
+<style id="eta-example-css">
+.eta-slide h2 { margin-bottom:clamp(0.7rem,2vh,1.4rem); }
+.eta-layout { display:grid; grid-template-columns:1.05fr 1fr; gap:clamp(1rem,2.5vw,2rem); align-items:stretch; }
+.eta-visual { min-width:0; margin:0; background:#fff; border:1px solid var(--cx-border-strong); border-radius:18px; padding:clamp(0.75rem,1.5vh,1.2rem); display:flex; flex-direction:column; justify-content:center; }
+.eta-label { font-size:0.78rem; font-weight:800; letter-spacing:0.1em; text-transform:uppercase; color:var(--cx-accent); }
+.eta-visual img { display:block; width:100%; height:auto; max-height:34vh; aspect-ratio:16/9; object-fit:contain; margin:0.5rem 0; }
+.eta-visual figcaption { font-size:clamp(0.75rem,1.6vh,1rem); color:var(--cx-muted); line-height:1.5; }
+.eta-logic { display:grid; gap:clamp(0.6rem,1.4vh,1rem); }
+.eta-step { display:flex; align-items:flex-start; gap:0.8rem; padding:clamp(0.7rem,1.5vh,1.2rem); border:1px solid var(--cx-border); border-radius:14px; background:var(--cx-surface); }
+.eta-number { display:grid; place-items:center; flex:0 0 1.8rem; height:1.8rem; background:var(--cx-accent); color:white; border-radius:50%; font-weight:750; }
+.eta-step h3 { font-size:clamp(1rem,2.2vh,1.4rem); margin-bottom:0.25rem; line-height:1.25; }
+.eta-step p { font-size:clamp(0.9rem,1.9vh,1.18rem); }
+.eta-takeaway { margin-top:clamp(0.7rem,1.8vh,1.3rem); padding:0.8rem 1rem; border-left:4px solid var(--cx-accent); border-radius:0 12px 12px 0; background:#e4efe5; font-size:clamp(1rem,2.1vh,1.3rem); }
+.eta-scope { margin-top:0.65rem; font-size:clamp(0.78rem,1.6vh,1rem); color:var(--cx-muted); }
+.eta-sources { margin-top:0.45rem; font-size:clamp(0.7rem,1.4vh,0.85rem); color:var(--cx-muted); }
+@media(max-width:800px) {
+ .eta-slide { justify-content:flex-start; }
+ .eta-layout { grid-template-columns:1fr; }
+ .eta-visual img { max-height:28vh; }
+}
+</style>
 </head>
 <body>
 <div class="deck">
@@ -471,43 +492,44 @@ a { color: var(--cx-accent); }
 </div>
 <p class="legend" style="font-size:1.1rem;">Choosing the hospital changes both parts at once.</p>
     </section>
-    <section class="slide" data-presenter="Azaria · Richard">
-      <div class="kicker">Why this is hard</div>
-<h2>The nearest hospital is not always the fastest</h2>
-<svg viewBox="0 0 900 380" width="100%" style="max-height:62vh;background:#fff;border:1px solid #d6e0cc;border-radius:18px;">
-  <rect x="0" y="0" width="900" height="380" fill="#f3f6ef"/>
-  <g stroke="#ffffff" stroke-width="14" fill="none">
-    <path d="M0 260 H900"/><path d="M300 0 V380"/><path d="M560 0 V380"/><path d="M0 110 H900"/>
-  </g>
-  <g stroke="#b4781b" stroke-width="3" stroke-dasharray="8 6" fill="none">
-    <path d="M150 220 L420 110"/><path d="M150 220 L450 300"/><path d="M150 220 L700 290"/>
-  </g>
-  <circle cx="150" cy="220" r="16" fill="#1e3a2d"/>
-  <text x="150" y="258" text-anchor="middle" font-size="16" fill="#1e3a2d" font-weight="700">Ambulance</text>
-  <rect x="330" y="60" width="230" height="78" rx="14" fill="#fff" stroke="#b03a2e" stroke-width="2"/>
-  <text x="345" y="90" font-size="17" font-weight="700" fill="#1e3a2d">Michael Garron</text>
-  <text x="345" y="114" font-size="15" fill="#6c8576">3 min travel · 31 min offload</text>
-  <text x="345" y="152" font-size="15" font-weight="700" fill="#b03a2e">34 min total, nearest</text>
-  <rect x="350" y="300" width="230" height="64" rx="14" fill="#fff" stroke="#b4781b" stroke-width="2"/>
-  <text x="365" y="326" font-size="17" font-weight="700" fill="#1e3a2d">Toronto General</text>
-  <text x="365" y="348" font-size="15" fill="#6c8576">14 min travel · 23 min offload</text>
-  <rect x="610" y="250" width="250" height="78" rx="14" fill="#eef8f2" stroke="#255a42" stroke-width="2.5"/>
-  <text x="625" y="280" font-size="17" font-weight="700" fill="#1e3a2d">Sunnybrook</text>
-  <text x="625" y="304" font-size="15" fill="#6c8576">12 min travel · 18 min offload</text>
-  <text x="610" y="236" font-size="14" font-weight="700" fill="#255a42" letter-spacing="1">FASTEST: 30 MIN TOTAL</text>
-</svg>
-<p class="legend">Illustrative example from our synthetic simulation, not measured in the field.</p>
+    <section class="slide eta-slide" data-presenter="Azaria · Richard" aria-labelledby="eta-title">
+      <div class="kicker">Why this is hard · Google Maps example</div>
+      <h2 id="eta-title">One ETA hides a network of predictions</h2>
+      <div class="eta-layout">
+        <figure class="eta-visual">
+          <div class="eta-label">Behind the arrival time</div>
+          <img src="assets/google-maps-road-graph.gif" width="1920" height="1080" alt="Google DeepMind animation transforming a road map into connected road segments, then showing information passing through the graph to predict travel time.">
+          <figcaption>Roads become a graph. Delays on connecting streets can affect your route.<br>Image: Google DeepMind · Paulo Estriga &amp; Adam Cain.</figcaption>
+        </figure>
+        <div class="eta-logic" aria-label="Google's published ETA prediction approach">
+          <div class="eta-step"><span class="eta-number">1</span><div><h3>Combine changing signals</h3><p>Live speeds + historical traffic patterns; closures and incidents inform routing.</p></div></div>
+          <div class="eta-step"><span class="eta-number">2</span><div><h3>Predict across connected roads</h3><p>A <b>graph neural network</b> passes learned messages between road segments to capture spreading congestion.</p></div></div>
+          <div class="eta-step"><span class="eta-number">3</span><div><h3>Compare routes by predicted time</h3><p>Predict travel times for groups of road segments (“Supersegments”), then rank candidate routes.</p></div></div>
+        </div>
+      </div>
+      <div class="eta-takeaway"><b>The challenge:</b> predict conditions when you get there. Our hospital decision also adds offload and queues at the expected arrival time.</div>
+      <p class="eta-scope"><b>Current repo:</b> estimated travel + offload forecasts; active runs project simulated queues. Google Maps opens for navigation; Google Routes integration is planned.</p>
+      <p class="eta-sources">Published approach (2020): <a href="https://blog.google/products-and-platforms/products/maps/google-maps-101-how-ai-helps-predict-traffic-and-determine-routes/" target="_blank" rel="noopener noreferrer">Google Maps: traffic &amp; routing</a> · <a href="https://deepmind.google/blog/traffic-prediction-with-advanced-graph-neural-networks/" target="_blank" rel="noopener noreferrer">DeepMind: graph neural networks</a></p>
     </section>
     <section class="slide" data-presenter="Azaria · Richard">
-      <div class="kicker">Our model</div>
-      <h2>Offload time from public calendar data</h2>
-      <div class="formula" style="font-size:clamp(1.2rem,3.2vh,1.9rem);">T predicted = (hospital mean + 1) × calendar factor − 1</div>
-      <div class="cols" style="grid-template-columns:repeat(3,1fr);margin-top:1.4rem;">
-        <div class="big-card"><div class="pill">Data</div><p style="margin-top:0.6rem;">50,000 offload records from public Sacramento data</p></div>
-        <div class="big-card"><div class="pill">Calendar</div><p style="margin-top:0.6rem;">Time of day and weekday effects</p></div>
-        <div class="big-card hi"><div class="pill warm">Toronto</div><p style="margin-top:0.6rem;">Transferred estimate, not yet validated locally</p></div>
+      <div class="kicker">Ambulance offload prediction</div>
+      <h2>Our AI model predicts time to patient handover</h2>
+      <p>A regression model learns how offload time varies by hospital, hour of arrival and day of the week.</p>
+      <div class="cols" style="margin-top:1.2rem;">
+        <div class="big-card">
+          <h3>Training data</h3>
+          <div class="big">36,774 records</div>
+          <p>We trained on 31,505 offloads, tuned on 5,269 more, then fit the final model on both groups.</p>
+          <p class="legend">Source dataset of 50,000 offloads across 11 Sacramento County hospitals.</p>
+        </div>
+        <div class="big-card hi">
+          <h3>Performance on 7,802 held-out cases</h3>
+          <div class="big">18.43 min</div>
+          <p>Average absolute prediction error on Sacramento offloads from January through October 2022.</p>
+          <p class="legend">Using each hospital’s historical average gave an error of 18.72 min.</p>
+        </div>
       </div>
-      <p class="legend">Sacramento test: 18.4 min error vs 18.7 min for hospital averages. A small gain.</p>
+      <p class="legend"><b>The model reduced average absolute error by 0.29 minutes per case</b> (about 17 seconds). Toronto accuracy still needs local validation.</p>
     </section>
     <section class="slide" data-presenter="Azaria · Richard">
       <div class="kicker">Gap analysis and decisions</div>
