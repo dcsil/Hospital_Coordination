@@ -559,19 +559,14 @@ a { color: var(--cx-accent); }
     </section>
     <section class="slide" data-presenter="Azaria · Richard">
       <div class="kicker">Our competitor · Patient Destination Software</div>
-      <h2>Patient Destination Software helps assign a hospital. The queue can change en route.</h2>
-      <div class="cols">
-        <div class="big-card">
-          <h3>How Toronto uses Patient Destination Software</h3>
-          <p>A destination coordinator monitors hospital status and uses Patient Destination Software to assign a hospital based on the crew’s location, the urgency of the patient’s condition and the services they need.</p>
-        </div>
-        <div class="big-card hi">
-          <h3>Where the recommendation can fall short</h3>
-          <p>In our interview, Kelly described outdated status information and unexpected simultaneous arrivals. Two crews can head toward the same available hospital and find a queue when they arrive.</p>
-        </div>
+      <h2>Assigns hospitals, but cannot see the queue en route</h2>
+      <div class="cols" style="grid-template-columns:repeat(3,1fr);">
+        <div class="big-card"><div class="pill">Use</div><p style="margin-top:0.6rem;">A coordinator assigns hospitals by location, urgency and services.</p></div>
+        <div class="big-card"><div class="pill warm">Gap 1</div><p style="margin-top:0.6rem;">Status can be outdated. Misses ambulances already on the way.</p></div>
+        <div class="big-card"><div class="pill warm">Gap 2</div><p style="margin-top:0.6rem;">Offload status is tracked by radio or phone, not in the tool.</p></div>
       </div>
-      <p class="legend">Waypoint addresses this gap by using inbound ambulances to estimate the handover queue at arrival in its simulator.</p>
-      <p class="legend">Sources include the <a href="https://www.torontoparamedic.com/communications/" target="_blank" rel="noopener noreferrer">Toronto Paramedic Association</a> and our interview with Kelly.</p>
+      <p class="legend">Waypoint counts inbound ambulances to predict the queue at arrival.</p>
+      <p class="legend">Sources: <a href="https://www.torontoparamedic.com/communications/" target="_blank" rel="noopener noreferrer">Toronto Paramedic Association</a>, Kelly interview.</p>
     </section>
     <section class="slide" data-presenter="Azaria · Richard">
       <div class="kicker">Ambulance offload prediction</div>
