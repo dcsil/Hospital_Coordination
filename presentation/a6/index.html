@@ -333,7 +333,7 @@ a { color: var(--cx-accent); }
       <div class="problem-bottom">
         <div class="kicker" style="margin-bottom:0.4rem;">Competitor analysis</div>
         <div class="compact"><table>
-  <thead><tr><th>Capability</th><th>Baseline</th><th>PDS</th><th>Waypoint</th></tr></thead>
+  <thead><tr><th>Capability</th><th>Baseline</th><th>Patient Destination Software</th><th>Waypoint</th></tr></thead>
   <tbody>
     <tr><td>Recommends a hospital</td><td><span class="cross">✗</span></td><td><span class="check">✓</span></td><td><span class="check">✓</span></td></tr>
     <tr><td>Counts ambulances already en route</td><td><span class="cross">✗</span></td><td><span class="cross">✗</span></td><td><span class="check">✓</span></td></tr>
@@ -343,7 +343,7 @@ a { color: var(--cx-accent); }
     <tr><td>Dispatcher makes final choice</td><td><span class="check">✓</span></td><td><span class="muted-tag">Not verified</span></td><td><span class="check">✓</span></td></tr>
   </tbody>
 </table></div>
-        <p class="legend">PDS entries come from the Toronto Paramedic Association page and our Kelly interview.</p>
+        <p class="legend">Patient Destination Software entries come from the Toronto Paramedic Association page and our Kelly interview.</p>
       </div>
     </section>
     <section class="slide" data-presenter="Azaria · Richard">
@@ -569,13 +569,13 @@ a { color: var(--cx-accent); }
           <span class="pill">Add</span>
           <div class="stack" style="margin-top:0.6rem;"><div>Recalibrated offload range</div><div>Auto-pause on decisions</div><div>Queued Pause</div></div>
           <span class="pill warm" style="margin-top:1rem;">Change</span>
-          <div class="stack" style="margin-top:0.6rem;"><div>Use PDS as an input, not a replacement</div></div>
+          <div class="stack" style="margin-top:0.6rem;"><div>Use Patient Destination Software as an input, not a replacement</div></div>
           <span class="pill red" style="margin-top:1rem;">Defer</span>
           <div class="stack" style="margin-top:0.6rem;"><div>Live traffic feed</div><div>CAD integration</div></div>
         </div>
       </div>
       <div class="big-card hi" style="margin-top:1.1rem;">
-        <b>Our edge:</b> counts ambulances already en route, which PDS does not, and predicts offload before arrival.
+        <b>Our edge:</b> counts ambulances already en route, which Patient Destination Software does not, and predicts offload before arrival.
       </div>
     </section>
     
@@ -589,7 +589,7 @@ a { color: var(--cx-accent); }
         <div class="box">Dashboard<br><small>Recommendation and range</small></div>
       </div>
       <table style="margin-top:1.4rem;">
-        <thead><tr><th>Offload prediction</th><th>Baseline (hospital average)</th><th>PDS</th><th>Waypoint model</th></tr></thead>
+        <thead><tr><th>Offload prediction</th><th>Baseline (hospital average)</th><th>Patient Destination Software</th><th>Waypoint model</th></tr></thead>
         <tbody>
           <tr><td>Mean absolute error</td><td>18.7 min</td><td><span class="muted-tag">Not tested</span></td><td><b>18.4 min</b></td></tr>
           <tr><td>Central 80% range coverage</td><td>n/a</td><td><span class="muted-tag">Not tested</span></td><td><b>81%</b></td></tr>
