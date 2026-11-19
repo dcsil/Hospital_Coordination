@@ -302,6 +302,11 @@ a { color: var(--cx-accent); }
 .compact td { padding: clamp(0.5rem, 1.4vh, 0.85rem) 0.9rem; }
 .problem-bottom .legend { margin-top: 0.5rem; font-size: 0.85rem; }
 </style>
+<style id="route-anim">
+.slide.active .route-live { stroke-dashoffset: 0; animation: routeDash 1.2s linear infinite; }
+@keyframes routeDash { to { stroke-dashoffset: -24; } }
+.route-map { overflow: visible; }
+</style>
 </head>
 <body>
 <div class="deck">
@@ -415,11 +420,22 @@ a { color: var(--cx-accent); }
     <div style="padding:1rem;">
       <div class="eta">12 min</div>
       <div class="hero-label">Estimated travel to the bay</div>
-      <svg viewBox="0 0 260 150" width="100%" style="margin-top:0.8rem;background:#f3f6ef;border-radius:12px;">
-        <path d="M30 120 H120 V60 H230" fill="none" stroke="#255a42" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="30" cy="120" r="9" fill="#1e3a2d"/>
-        <circle cx="230" cy="60" r="10" fill="#b03a2e"/>
-        <text x="230" y="46" text-anchor="middle" font-size="12" font-weight="700" fill="#1e3a2d">Sunnybrook</text>
+      <svg viewBox="0 0 260 150" width="100%" class="route-map" style="margin-top:0.8rem;background:#f3f6ef;border-radius:12px;">
+        <defs>
+          <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0 H0 V20" fill="none" stroke="#e1e8dc" stroke-width="1"/></pattern>
+        </defs>
+        <rect width="260" height="150" fill="url(#grid)"/>
+        <path id="drv-route" d="M30 120 H120 V60 H230" fill="none" stroke="#bccdad" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        <path class="route-live" d="M30 120 H120 V60 H230" fill="none" stroke="#255a42" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6 6"/>
+        <circle cx="30" cy="120" r="7" fill="#1e3a2d"/>
+        <g class="route-car">
+          <circle r="9" fill="#ffffff" stroke="#255a42" stroke-width="2.5"/>
+          <path d="M-4 0 H4 M0 -4 V4" stroke="#b03a2e" stroke-width="2.4" stroke-linecap="round"/>
+          <animateMotion dur="4.5s" repeatCount="indefinite" rotate="auto"><mpath href="#drv-route"/></animateMotion>
+        </g>
+        <circle cx="230" cy="60" r="11" fill="#b03a2e" opacity="0.18"/>
+        <circle cx="230" cy="60" r="6" fill="#b03a2e"/>
+        <text x="230" y="40" text-anchor="middle" font-size="12" font-weight="700" fill="#1e3a2d">Sunnybrook</text>
       </svg>
       <div class="row-item" style="margin-top:0.7rem;"><span><b>Turn right</b> onto Bayview</span><span>400 m</span></div>
       <div class="btn light" style="width:100%;margin-top:0.4rem;">Arrived</div>
