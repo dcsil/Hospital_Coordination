@@ -1,7 +1,7 @@
 import { forecast,type Run } from './simulation.ts';
 import { z } from 'zod';
 import type { EdSnapshot } from './live-ed.ts';
-import { hospitalPredictions } from './hospital-offload.ts';
+import { hospitalPredictions, predictHospital } from './hospital-offload.ts';
 import type { RoadTravel } from './road-travel.ts';
 import type { Point } from './hospital-sites.ts';
 export const LOCATIONS = [
@@ -25,7 +25,7 @@ export function journeyNetwork(snapshot?:EdSnapshot,evaluatedAt?:string,roads?:R
   const choices=sites.map(site=>{
     const siteTravel=roads?.minutes[site.id]??null;
     const simulationHospital=run?.hospitals.find(h=>h.id===site.id);
-    const prediction=run&&simulationHospital?forecast({...run,liveEd:snapshot??run.liveEd,liveEdEvaluatedAt:evaluatedAt||run.liveEdEvaluatedAt},simulationHospital,siteTravel??0):backgrounds.find(h=>h.id===site.id)!;
+    const prediction=run&&simulationHospital?forecast({...run,liveEd:snapshot??run.liveEd,liveEdEvaluatedAt:evaluatedAt||run.liveEdEvaluatedAt},simulationHospital,siteTravel??0):predictHospital(site.id,snapshot,evaluatedAt,{arrivalAt: evaluatedAt && Number.isFinite(Date.parse(evaluatedAt)) ? new Date(Date.parse(evaluatedAt)+(siteTravel??0)*60000).toISOString() : undefined});
     const h={...site,...prediction};
     const travel=roads?.minutes[h.id]??null;
     return {...h,hospitalId:h.id,travel,total:travel===null?null:Math.round((travel+h.offload)*10)/10};

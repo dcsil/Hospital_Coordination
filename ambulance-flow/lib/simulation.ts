@@ -39,7 +39,7 @@ export function createRun(config: Config, id: string, scenarioId = ''): Run {
   const random = rng(config.seed + 10000);
   const hospitals = HOSPITAL_SITES.slice(0, config.hospitals).map((h, i): Hospital => ({ ...h, capacity: config.slots, service: config.serviceMinutes * (i === 0 ? 1.3 : i === 2 ? .85 : 1), capabilities: i % 2 === 0 ? ['general', 'specialist'] : ['general'], queue: [], active: [], completions: [], observations: [{ time: 0, queue: 0, busy: 0, capacity: config.slots }] }));
   const ambulances = Array.from({ length: config.fleet }, (_, i): Ambulance => { const point = { lat: 43.65 + random() * .065, lng: -79.45 + random() * .12 }; return { id: `AMB-${101 + i}`, ...point, from: point, status: 'AVAILABLE', until: 0, routeStart: 0 }; });
-  const run: Run = { modelVersion: 3, travelSource: 'Estimated simulation travel', id, scenarioId, config: { ...config }, status: 'running', time: 0, revision: 0, hospitals, ambulances, incidents: incidentSchedule(config), events: [], sequence: 0, history: [], availableMinutes: 0, surgeInjected: false, createdAt: new Date().toISOString() };
+  const run: Run = { modelVersion: 4, travelSource: 'Estimated simulation travel', id, scenarioId, config: { ...config }, status: 'running', time: 0, revision: 0, hospitals, ambulances, incidents: incidentSchedule(config), events: [], sequence: 0, history: [], availableMinutes: 0, surgeInjected: false, createdAt: new Date().toISOString() };
   record(run, 'started', `${config.name} started with ${config.fleet} ambulances.`); sample(run); return run;
 }
 export function observed(run: Run, h: Hospital) {
@@ -53,8 +53,7 @@ export function legacyForecast(run: Run, h: Hospital, horizon = 15, exclude?: st
   // Workload estimate uses delayed reports plus known commitments, never hidden truth.
   const remaining = Math.max(0, (o.queue + o.busy) * h.service - o.capacity * horizon);
   const offload = o.capacity === 0 ? 180 : Math.min(180, h.service + (remaining + arrivals * h.service) / o.capacity);
-  const uncertainty = h.service * .3 + (run.time - o.time) * .8 + arrivals * 1.5;
-  return { offload: round(offload), lower: round(Math.max(h.service * .5, offload - uncertainty)), upper: round(offload + uncertainty), queue: o.queue, inbound: arrivals, age: run.time - o.time, capacity: o.capacity, projectedQueue: round(Math.max(0, o.queue + o.busy + arrivals - o.capacity * horizon / h.service)) };
+  return { offload: round(offload), lower: null, upper: null, queue: o.queue, inbound: arrivals, age: run.time - o.time, capacity: o.capacity, projectedQueue: round(Math.max(0, o.queue + o.busy + arrivals - o.capacity * horizon / h.service)) };
 }
 /** Queue projection at the candidate's handover-readiness time. Historical/live
  * offload is decomposed into background delay plus mean slot service. The same
@@ -63,7 +62,7 @@ export function legacyForecast(run: Run, h: Hospital, horizon = 15, exclude?: st
  */
 export function forecast(run: Run, h: Hospital, horizon = 15, exclude?: string) {
   const o=observed(run,h);const tuning={...DEFAULT_PREDICTION,...run.config.prediction};
-  const base=predictHospital(h.id,run.liveEd,run.liveEdEvaluatedAt,tuning);
+  const base=predictHospital(h.id,run.liveEd,run.liveEdEvaluatedAt,{...tuning,publicModel:false},{version:1,asOf:null,hospitals:{}});
   const serviceFloorAdjustment=round(Math.max(0,h.service-base.baseline-base.liveAdjustment));
   const expectedBase=base.baseline+base.liveAdjustment+serviceFloorAdjustment;
   const backgroundDelay=Math.max(0,expectedBase-h.service);
@@ -79,8 +78,7 @@ export function forecast(run: Run, h: Hospital, horizon = 15, exclude?: string) 
   const queueAdjustment=round(projectedWait*tuning.queueWeight);
   const uncapped=expectedBase+queueAdjustment;
   const offload=closed?tuning.maxMinutes:Math.min(tuning.maxMinutes,Math.max(1,uncapped));
-  const uncertainty=base.baseline*.3+(run.time-o.time)*.8+arrivals.length*1.5;
-  return {...base,offload:round(offload),lower:round(Math.max(1,offload-uncertainty)),upper:round(offload+uncertainty),
+  return {...base,offload:round(offload),lower:null,upper:null,interval:null,validation:null,estimateKind:'simulation' as const,
     congestionAdjustment:0,queueAdjustment,serviceFloorAdjustment,backgroundDelay:round(backgroundDelay),
     projectedWait:round(projectedWait),projectedQueue:closed?o.queue+arrivals.length:starts.filter(t=>t>target).length,
     queue:o.queue,inbound:arrivals.length,age:run.time-o.time,capacity:o.capacity,
@@ -141,7 +139,7 @@ export function advance(run: Run, minutes: number): Run {
       else if (a.status === 'ON_SCENE' && a.until <= run.time) { a.status = 'AWAITING_DECISION'; record(run, 'decision_needed', `${a.id} ready for destination selection.`, a.id); }
       else if (a.status === 'EN_ROUTE' && i) {
         const h = run.hospitals.find(h => h.id === a.destination)!; const f = Math.min(1, (run.time - a.routeStart) / Math.max(1, a.until - a.routeStart)); a.lat = a.from.lat + (h.lat - a.from.lat) * f; a.lng = a.from.lng + (h.lng - a.from.lng) * f;
-        if (a.until <= run.time) { a.status = 'WAITING_TO_OFFLOAD'; a.arrivalAt = run.time; const base=predictHospital(h.id,run.liveEd,run.liveEdEvaluatedAt,run.config.prediction); i.backgroundDelay=Math.max(0,base.baseline+base.liveAdjustment-h.service); a.readyAt=run.time+Math.ceil(i.backgroundDelay); h.queue.push(a.id); record(run, 'arrival', `${a.id} arrived at ${h.name}.`, a.id, h.id); }
+        if (a.until <= run.time) { a.status = 'WAITING_TO_OFFLOAD'; a.arrivalAt = run.time; const base=predictHospital(h.id,run.liveEd,run.liveEdEvaluatedAt,{...run.config.prediction,publicModel:false},{version:1,asOf:null,hospitals:{}}); i.backgroundDelay=Math.max(0,base.baseline+base.liveAdjustment-h.service); a.readyAt=run.time+Math.ceil(i.backgroundDelay); h.queue.push(a.id); record(run, 'arrival', `${a.id} arrived at ${h.name}.`, a.id, h.id); }
       }
       if (a.status === 'AWAITING_DECISION' && !run.config.manual) { const option = choices(run, a.id).find(c => c.eligible); if (option) decide(run, a.id, option.hospitalId, `${run.config.policy} simulation policy`); }
     }
@@ -183,5 +181,5 @@ export function compare(config: Config, seeds: number[], inputs: {liveEd?:EdSnap
     const margin = t * Math.sqrt(variance / diffs.length);
     return { metric, baseline: round(mean(baseline)), coordinated: round(mean(coordinated)), delta: round(delta), ciLow: round(delta - margin), ciHigh: round(delta + margin) };
   });
-  return { modelVersion:3,inputs:{...inputs,travelSource:'Estimated simulation travel'},config, seeds, rows, summary };
+  return { modelVersion:4,inputs:{...inputs,travelSource:'Estimated simulation travel'},config, seeds, rows, summary };
 }

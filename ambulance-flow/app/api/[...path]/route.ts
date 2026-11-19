@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 const json = (value: unknown, status = 200) => Response.json(value, { status, headers: { 'Cache-Control': 'no-store' } });
 class HttpError extends Error { constructor(public status: number, message: string) { super(message); } }
 function database() { if (!env.DB) throw new HttpError(503, 'Database is unavailable. Apply the local database migration before starting.'); return env.DB; }
-async function load(id: string): Promise<Run> { const row = await database().prepare('SELECT state FROM simulation_runs WHERE id = ?').bind(id).first<{ state: string }>(); if (!row) throw new HttpError(404, 'Simulation not found.'); const run:Run=JSON.parse(row.state);if(run.modelVersion!==3)throw new HttpError(409,'This saved run uses an older hospital model. Start a new scenario.');return attachEd(run); }
+async function load(id: string): Promise<Run> { const row = await database().prepare('SELECT state FROM simulation_runs WHERE id = ?').bind(id).first<{ state: string }>(); if (!row) throw new HttpError(404, 'Simulation not found.'); const run:Run=JSON.parse(row.state);if(run.modelVersion!==4)throw new HttpError(409,'This saved run uses an older hospital model. Start a new scenario.');return attachEd(run); }
 async function attachEd(run:Run){run.liveEd=await edService.get();run.liveEdEvaluatedAt=new Date().toISOString();return run;}
 async function save(run: Run, expected: number, previousSequence: number) {
   const db = database(); const pending = run.events.filter(e => e.sequence > previousSequence); run.events = run.events.slice(-80); run.revision = expected + 1;
@@ -37,14 +37,14 @@ async function handle(request: Request) {
     const rows = await db.prepare('SELECT * FROM scenarios ORDER BY created_at DESC LIMIT 100').all<{ config: string }>(); return json(rows.results.map(r => ({ ...r, config: JSON.parse(r.config) })));
   }
   if (method === 'POST' && p[0] === 'scenarios') { const config = configSchema.parse(await request.json()); const id = crypto.randomUUID(); await db.prepare('INSERT INTO scenarios (id, name, config, created_at) VALUES (?, ?, ?, ?)').bind(id, config.name, JSON.stringify(config), new Date().toISOString()).run(); return json({ id, config }, 201); }
-  if (method === 'GET' && p[0] === 'evaluations') { const rows = await db.prepare("SELECT * FROM evaluations WHERE json_extract(result, '$.modelVersion') = 3 ORDER BY created_at DESC LIMIT 20").all<{ result: string }>(); return json(rows.results.map(r => ({ ...r, result: JSON.parse(r.result) }))); }
+  if (method === 'GET' && p[0] === 'evaluations') { const rows = await db.prepare("SELECT * FROM evaluations WHERE json_extract(result, '$.modelVersion') = 4 ORDER BY created_at DESC LIMIT 20").all<{ result: string }>(); return json(rows.results.map(r => ({ ...r, result: JSON.parse(r.result) }))); }
   if (method === 'POST' && p[0] === 'runs' && p[1] === 'compare') {
     const body = z.object({ config: configSchema, seeds: z.array(z.number().int().min(0).max(2147483647)).min(3).max(10).refine(s => new Set(s).size === s.length, 'Use distinct seeds.') }).parse(await request.json());
     const liveEd=await edService.get();const liveEdEvaluatedAt=new Date().toISOString();const result = compare(body.config, body.seeds,{liveEd,liveEdEvaluatedAt}); result.id = crypto.randomUUID(); result.createdAt = new Date().toISOString();
     await db.prepare('INSERT INTO evaluations (id, name, result, created_at) VALUES (?, ?, ?, ?)').bind(result.id, body.config.name, JSON.stringify(result), result.createdAt).run(); return json(result);
   }
   if (p[0] === 'runs' && !p[1]) {
-    if (method === 'GET') { const rows = await db.prepare("SELECT id, scenario_id, name, status, revision, created_at, updated_at FROM simulation_runs WHERE json_extract(state, '$.modelVersion') = 3 ORDER BY updated_at DESC LIMIT 50").all(); return json(rows.results); }
+    if (method === 'GET') { const rows = await db.prepare("SELECT id, scenario_id, name, status, revision, created_at, updated_at FROM simulation_runs WHERE json_extract(state, '$.modelVersion') = 4 ORDER BY updated_at DESC LIMIT 50").all(); return json(rows.results); }
     const body = z.object({ scenarioId: z.string().min(1) }).parse(await request.json()); const s = await db.prepare('SELECT config FROM scenarios WHERE id = ?').bind(body.scenarioId).first<{ config: string }>(); if (!s) throw new HttpError(404, 'Scenario not found.');
     const run = await attachEd(createRun(configSchema.parse(JSON.parse(s.config)), crypto.randomUUID(), body.scenarioId));
     await db.prepare('INSERT INTO simulation_runs (id, scenario_id, name, status, state, revision, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').bind(run.id, run.scenarioId, run.config.name, run.status, JSON.stringify(run), 0, run.createdAt, run.createdAt).run();

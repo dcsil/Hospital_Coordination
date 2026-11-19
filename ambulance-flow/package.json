@@ -14,7 +14,8 @@
     "db:generate": "drizzle-kit generate",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "test:e2e": "playwright test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "model:fit": "node --experimental-strip-types scripts/data/fit-offload.mts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

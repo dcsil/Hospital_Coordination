@@ -1,6 +1,6 @@
 # Near-real-time ED congestion
 
-The active model uses historical hospital offload baselines plus optional ER Compass posted ED waits. This helper supplies background conditions for the restored emergency simulator. Case-specific queues, slots, ambulance movement and completions are simulated, not observed hospital operations. See the application README for the full queue and outcome model. This remains a university research demo.
+The active model displays ER Compass posted ED waits as separate context. They do not change offload estimates or generated simulation outcomes. Case-specific queues, slots, ambulance movement and completions are simulated, not observed hospital operations. See the application README for the full queue and outcome model. This remains a university research demo.
 
 ## Verified source and schema
 
@@ -79,39 +79,25 @@ a positive median are required. History must explicitly match hospital and metri
 The provider currently returns a bounded history, so actual coverage may be less
 than seven days. Reference median, count and period are retained in the snapshot.
 
-```text
-deviation = clamp((posted ED wait − same-feed historical median) / median, −1, +1)
-freshness weight = 1 through 30 minutes; linear decay to 0 at 180 minutes
-live adjustment = deviation × liveCoefficientMinutes × freshness weight
+The reference and freshness labels are descriptive only. `liveAdjustment` is always
+zero. Historical averages and ED waits are different outcomes; without paired,
+time-aligned actual offloads, an ED-to-offload coefficient cannot be estimated.
+Legacy `liveCoefficientMinutes`/`liveMaxDeviation` settings cannot re-enable the
+old penalty. The relative deviation is retained as `edRelativeDeviation` for
+inspection, and `edUsedForOffload` is false.
 
-predicted offload = historical hospital offload baseline + live adjustment
-```
-
-The source-only helper adds no static ED congestion proxy. The simulation adds its own projected case queue delay to this sourced baseline. This avoids double counting an unobserved queue against the historical offload baseline. Missing or expired live data gives zero adjustment. Output is bounded to 1–180 minutes by default. No confidence interval is presented without calibrated outcomes.
-
-Defaults are in `LIVE_ED_DEFAULTS` (`lib/live-ed.ts`) and can be overridden in
-`OFFLOAD_OPTIONS` in `lib/hospital-offload.ts` or explicit predictor options:
-
-```json
-{
-  "liveCoefficientMinutes": 60,
-  "liveFreshMinutes": 30,
-  "liveExpireMinutes": 180,
-  "liveMaxDeviation": 1
-}
-```
-
-The coefficient is a **demo sensitivity assumption**, not a trained or validated
-ED-to-offload relationship. A +33.3% ED deviation gives +20 minutes at the default
-coefficient while fresh. ED waits remain different measurements from ambulance
-offload time. Missing live data uses the previous model with no modification.
+See [the public offload model](PUBLIC_OFFLOAD_MODEL.md) for the default prediction
+path and [the optional local model protocol](OFFLOAD_MODEL.md) for future local
+outcomes. Public-model predictions vary with expected arrival hour/weekday, not
+with an assumed ED-to-offload coefficient.
+Simulation queues remain a separate assumed process, with no fabricated interval.
 
 ## Dashboard and integration
 
 Hospital details and destination options show Live / Stale / No live ED data, with separate Loading ED, Feed offline and Live data expired labels. The API retains Historical Only for the fallback prediction status. They show
 latest reported ED wait and expandable components, timestamps, reference and
 attribution. A recent wait without comparable history is labelled Live but its
-explanation explicitly says that the adjustment was skipped.
+explanation explicitly says that ED waits are context only.
 
 Browser polls refresh visible ED inputs. Overview uses active-run queues, capacity and cases at the travel-time arrival horizon, just like the transport forecast. Without a run it explicitly shows background estimates only. Tracking begins at pickup. Scenario controls, ambulance movement and policy evaluation are restored. Real ambulance measurements remain unavailable; simulated queues are labelled as such.
 
@@ -126,8 +112,8 @@ npm run test:e2e
 ```
 
 Unit tests use mocked current/history schemas and cover mapping, invalid data,
-reference comparability, stale decay, cached failures, refresh/backoff, source-based ranking
-changes. Browser tests mock `/api/ed-data` to verify
+reference comparability, freshness labels, cached failures, refresh/backoff, and stable offload rankings
+when only ED measurements change. Browser tests mock `/api/ed-data` to verify
 status labels and estimate explanations. No live connection is required for
 those assertions; the dashboard remains usable with historical baselines
 if the provider is offline. For a manual integration check, inspect

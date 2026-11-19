@@ -1,6 +1,6 @@
 # Historical data provenance
 
-The source-only baseline helper is `lib/hospital-offload.ts`: historical offload baseline + comparable live ED adjustment. The active simulator in `lib/simulation.ts` adds case-dependent queue delay and uses the same baseline as its background offload conditions. See [live ED documentation](LIVE_ED.md).
+The source-only baseline helper is `lib/hospital-offload.ts`: a trained public-data calendar-transfer model anchored to published Toronto hospital statistics, a fresh local observed model when available, or a historical fallback. The active simulator in `lib/simulation.ts` adds case-dependent queue delay and uses the same baseline as its background offload conditions. See [live ED documentation](LIVE_ED.md).
 
 ## Sources and cleaning
 
@@ -31,6 +31,8 @@ Do not silently treat a changed chart as the old one.
 
 ## Current use
 
-The source-only preview lists the five matched real hospital sites; simulated scenarios can also include explicitly named virtual sites using the historical median fallback. The historical-only estimate equals the offload baseline. ED indicators are retained as separate context, never treated as ambulance queue, capacity or offload measurements. The source-only hospital preview has no simulated queue; ambulance forecasts add the selected run’s queue conditions.
+The source-only preview lists the five matched real hospital sites; simulated scenarios can also include explicitly named virtual sites using the historical median fallback. The historical-only estimate equals the offload baseline. No ED adjustment is applied. See [the offload model protocol](OFFLOAD_MODEL.md) for training, validation, and limitations. ED indicators are retained as separate context, never treated as ambulance queue, capacity or offload measurements. The source-only hospital preview has no simulated queue; ambulance forecasts add the selected run’s queue conditions.
 
 The restored simulator projects each case’s queue at handover readiness. See the application README for the background/slot decomposition, prediction formula and paired evaluation assumptions. Actual forecast accuracy cannot be measured without matched observed ambulance offload outcomes.
+
+The public model is trained and bundled; see [source data, reproducible training, and measured errors](PUBLIC_OFFLOAD_MODEL.md). Its source-region evaluation does not validate Toronto transfer.

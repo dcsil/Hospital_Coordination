@@ -7,7 +7,7 @@ test('location and destination steps remain explicit with a prefilled saved sear
  await page.getByRole('button',{name:'Union Station',exact:true}).click();await page.getByRole('button',{name:'Find hospitals'}).click();
  await expect(page.locator('.patient-option')).toHaveCount(5);await expect(page.getByText('Lowest travel + offload first.',{exact:true})).toBeVisible();
  await page.locator('.patient-option').nth(1).getByRole('radio').check();
- const detail=page.locator('.prediction-breakdown').first();await detail.locator(':scope>summary').click();await expect(detail).toContainText('Historical offload');await expect(detail).toContainText('Ambulance queue');await expect(detail).toContainText('Unavailable');await expect(detail).not.toContainText('Additional queue delay');
+ const detail=page.locator('.prediction-breakdown').first();await detail.locator(':scope>summary').click();await expect(detail).toContainText('Published anchor');await expect(detail).toContainText('Ambulance queue');await expect(detail).toContainText('Unavailable');await expect(detail).not.toContainText('Additional queue delay');
  await expect(page.getByRole('link',{name:/Open directions to/})).toHaveAttribute('href',/google.com\/maps\/dir/);
  await expect(page.getByRole('button',{name:/Start route|Arrived at hospital/})).toHaveCount(0);
  await page.screenshot({path:'outputs/hospital-estimates-desktop.png',fullPage:true});
@@ -18,8 +18,8 @@ test('location and destination steps remain explicit with a prefilled saved sear
 test('failed routing and missing ED readings leave travel unavailable and historical estimates usable',async({page})=>{
  await mockSources(page,{roadsAvailable:false,live:false});await page.goto('/');await page.getByRole('button',{name:'Union Station',exact:true}).click();await page.getByRole('button',{name:'Find hospitals'}).click();
  await expect(page.getByText('Road travel unavailable. Ranking uses offload estimates only.',{exact:true})).toBeVisible();await expect(page.locator('.patient-option')).toHaveCount(5);
- await expect(page.locator('.ed-status').getByText('No live ED data',{exact:true})).toHaveCount(5);
- await expect(page.locator('.patient-option').first()).toContainText('Sunnybrook');await expect(page.locator('.patient-option').first()).toContainText('28');await expect(page.locator('.patient-option').first()).toContainText('Travel unavailable');
+ await expect(page.locator('.ed-status').getByText('ED: No live ED data',{exact:true})).toHaveCount(5);
+ await expect(page.locator('.patient-option').first()).toContainText('Sunnybrook');await expect(page.locator('.patient-option').first()).toContainText('estimated offload');await expect(page.locator('.patient-option').first()).toContainText('Travel unavailable');
  await expect(page.locator('.estimate-comparison')).toHaveCount(0);
 });
 test('a chosen location launches an emergency in the working simulation',async({page})=>{
