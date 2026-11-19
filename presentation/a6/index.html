@@ -642,6 +642,31 @@ a { color: var(--cx-accent); }
       <iframe class="live-frame" style="height:86vh;" src="http://127.0.0.1:5173/#operations" title="Waypoint live app" loading="eager"></iframe>
     </section>
     <section class="slide" data-presenter="Azaria · Richard">
+      <div class="kicker">What changed since last week</div>
+      <h2>Three views, a planned traffic feed, a stronger model</h2>
+      <div style="display:grid;grid-template-columns:repeat(3,clamp(170px,22vh,230px));justify-content:center;gap:1rem;margin-top:0.8rem;">
+        <div class="big-card" style="aspect-ratio:1/1;padding:1rem;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;">
+          <div class="pill">View 1</div>
+          <h3 style="margin-top:0.8rem;">Operator</h3>
+          <p style="font-size:0.95rem;">Enter the location, choose a hospital, send it to the driver.</p>
+        </div>
+        <div class="big-card" style="aspect-ratio:1/1;padding:1rem;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;">
+          <div class="pill">View 2</div>
+          <h3 style="margin-top:0.8rem;">Driver</h3>
+          <p style="font-size:0.95rem;">See the destination, directions and arrival time.</p>
+        </div>
+        <div class="big-card hi" style="aspect-ratio:1/1;padding:1rem;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;">
+          <div class="pill">View 3</div>
+          <h3 style="margin-top:0.8rem;">Hospital</h3>
+          <p style="font-size:0.95rem;">See ambulances on the way and prepare the bay.</p>
+        </div>
+      </div>
+      <div class="cols" style="margin-top:1rem;">
+        <div class="big-card"><span class="pill warm">Planned</span><p style="margin-top:0.6rem;"><b>Live traffic:</b> the travel leg will use live road data. Not yet connected.</p></div>
+        <div class="big-card hi"><span class="pill">Merged</span><p style="margin-top:0.6rem;"><b>Improved model:</b> regression model on main (PR #22), a 0.29 min gain in the Sacramento test.</p></div>
+      </div>
+    </section>
+    <section class="slide" data-presenter="Azaria · Richard">
       <div class="cols" style="grid-template-columns:1fr 1fr;align-items:center;">
         <div>
           <div class="kicker">Questions</div>
